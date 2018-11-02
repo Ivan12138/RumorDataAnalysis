@@ -29,8 +29,8 @@ socket.setdefaulttimeout(10)
 size = len(pic_set)
 ok_i = 0
 err_i = 0
-with open('downloading_img_log.txt', 'w') as ok_out:
-    with open('downloading_img_err_log.txt', 'w') as err_out:
+with open('downloading_img_log-2.txt', 'w') as ok_out:
+    with open('downloading_img_err_log-2.txt', 'w') as err_out:
         # 数量统计
         ok_out.write('-------------------------\n')
         ok_out.write('There are {} imgs in pic_lists.'.format(len(pic_lists)))
@@ -40,25 +40,24 @@ with open('downloading_img_log.txt', 'w') as ok_out:
         for pic_url in pic_set:
             pic_name = pic_url.split('/')[-1]
             try:
-                urlretrieve(pic_url, './img/' + pic_name)
+                urlretrieve(pic_url, './img-2/' + pic_name)
                 ok_i += 1
-            except socket.timeout:
-                count = 1
-                while count <= 5:
-                    try:
-                        urlretrieve(pic_url, pic_name)
-                        break
-                    except socket.timeout:
-                        err_info = 'Reloading for %d time' % count if count == 1 else 'Reloading for %d times' % count
-                        print(err_info)
-                        count += 1
-                if count > 5:
-                    print("downloading picture failed!")
+            # except socket.timeout:
+            #     count = 1
+            #     while count <= 5:
+            #         try:
+            #             urlretrieve(pic_url, pic_name)
+            #             break
+            #         except socket.timeout:
+            #             err_info = 'Reloading for %d time' % count if count == 1 else 'Reloading for %d times' % count
+            #             print(err_info)
+            #             count += 1
+            #     if count > 5:
+            #         print("downloading picture failed!")
             except:
                 err_i += 1
                 err_out.write("[Error] Something wrong in downloading {} !\n".format(pic_url))
             finally:
-                # ok_i += 1
                 if (ok_i + err_i) % 100 == 0:
-                    ok_out.write('Downloading {} pics and {} err_pics, {:.2f}%, {:.2f} sec...\n'.format(ok_i, err_i, (
-                        ok_i + err_i) / size * 100, time.time() - start_time))
+                    ok_out.write('{}: Downloading {} pics and {} err_pics, {:.2f}%, {:.2f} sec...\n'.format(
+                        time.time(), ok_i, err_i, (ok_i + err_i) / size * 100, time.time() - start_time))

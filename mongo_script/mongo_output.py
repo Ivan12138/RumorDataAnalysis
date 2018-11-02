@@ -1,7 +1,9 @@
+# encoding:utf-8
+
+# ========== 根据 clue_id 生成对应 weibo 的json 文件 ========== #
 
 from pymongo import MongoClient
 import json
-from collections import Iterable
 
 
 def get_unicode_txt():
@@ -23,39 +25,15 @@ def get_unicode_txt():
 
                 out.write(doc_json + '\n')
 
-                # count += 1
-                # if count == 3:
-                #     break
-
 
 def handle_unicode_txt():
-    to_handle_file = 'weibo_truth_unicode.txt'
-    output_file = 'weibo_truth.txt'
-
-    with open(to_handle_file, 'r') as src:
-        with open(output_file, 'w') as out:
-            json_lines = src.readlines()
-            for weibo_json in json_lines:
-                weibo_dict = json.loads(weibo_json)
-
-                handled_weibo_dict = {}
-                for key, value in weibo_dict.items():
-                    # 对 keywords 进行处理
-                    # if key == 'keywords':
-                    #     err_out.write(value + '\n')
-                    #     handled_weibo_dict[key] = value
-
-                    # 对于微博集合来说，每一个value都是一个dict
-                    if key == 'weibo':
-                        for single_weibo in value:
-                            for k, v in single_weibo.items():
-                                print(k)
-                                print(type(v))
-                                print()
-                            break
-
-                out.write(json.dumps(handled_weibo_dict))
-                break
+    file = 'weibo_truth_unicode.txt'
+    with open(file, 'r') as src:
+        with open('weibo_truth_pretty.txt', 'w') as out:
+            lines = src.readlines()
+            for line in lines:
+                weibo_json = json.loads(line)
+                out.write(json.dumps(weibo_json, ensure_ascii=False, indent=4, separators=(',', ':')))
 
 
 get_unicode_txt()

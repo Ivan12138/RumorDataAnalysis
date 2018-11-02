@@ -1,5 +1,7 @@
 # encoding:utf-8
 
+# =========== 根据 MongoDB 生成真实谣言的 clue_id =========== #
+
 # ﻿db.getCollection('newsclues_ready').find({label:"truth", category:{$nin:["军事", "娱乐"]}}).sort({timestamp:-1})
 # ﻿db.getCollection('event_ready').find({clue_id:"87b620c2f8aedb60f999f93950c8ac80", update:true})
 
@@ -15,6 +17,3 @@ with open("clues_id.txt", 'w') as f:
     for doc in clues_article.find({'label': "truth", 'category': {'$nin': ["军事", "娱乐"]}}):
         clues_id = doc['id']
         f.write(clues_id + '\n')
-        # count += 1
-        # if count == 6:
-        #     break

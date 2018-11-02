@@ -1,6 +1,7 @@
 # encoding:utf-8
 
-# 生成js脚本文件
+# =========== 生成js脚本文件 =========== #
+
 # var c = db.﻿event_ready.find({clue_id : process.argv[2], update:true});
 # while(c.hasNext()) {
 #     printjsononeline(c.next());

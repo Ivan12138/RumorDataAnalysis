@@ -1,5 +1,7 @@
 # encoding:utf-8
 
+# =========== 爬虫：根据json文件中的图片URL进行下载 =========== #
+
 from urllib.request import urlretrieve
 import json
 import socket

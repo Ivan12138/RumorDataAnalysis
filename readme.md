@@ -9,13 +9,15 @@
 |        pic_lists        |    203957    |
 |      unique images      |    184528    |
 |      **爬取结果**       | **数目统计** |
-|           img           | 97230 (19G)  |
-|         err_img         |    87273     |
+|           img           | 97230 (20G)  |
+|        img_twice        | 86899 (22G)  |
+|           err           |      64      |
 
-爬虫耗时：10h
+爬虫耗时：10h + 13h
 
 2018-11-02 17:06:14 ～ 2018-11-03 03:10:25
 
+2018-11-06 16:07:12 ～ 2018-11-07 05:25:12
 
 # MongoDB Cmd
 
@@ -32,4 +34,4 @@ db.getCollection('event_ready').find({timestamp:{$gt:1539458594654}}).sort({time
 # Linux Cmd
 
 - ls img -lR |grep "^-"|wc -l
-- 
+- nohup

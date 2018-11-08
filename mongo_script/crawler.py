@@ -38,6 +38,34 @@ def crawler_twice():
     crawler(pic_lists, pic_set, 'downloading_twice_img_log.txt', 'downloading_twice_img_err_log.txt')
 
 
+def crawler_demo():
+    with open('file/_sample_weibo_truth.txt', 'r') as src:
+        lines = src.readlines()
+        sz = len(lines)
+
+        pic_lists = []
+        for line in lines:
+            event_json = json.loads(line, encoding='utf-8')
+
+            event_id = event_json['id']  # 时间id
+            event_weibo_list = event_json['weibo']
+            event_pics = []
+
+            # 提取事件中的图片
+            for weibo_dict in event_weibo_list:
+                if 'piclist' in weibo_dict.keys():
+                    curr_pics = weibo_dict['piclist']
+                    if curr_pics is not None:
+                        for curr_pic in curr_pics:
+                            event_pics.append(curr_pic)
+
+            event_pics = list(set(event_pics))
+            pic_lists += event_pics
+
+        pic_set = set(pic_lists)
+        crawler(pic_lists, pic_set, 'log.txt', 'err_log.txt')
+
+
 def crawler(pic_lists, pic_set, file_of_img, file_of_err_img):
     start_time = time.time()
     # 设置超时时间为10s
@@ -57,7 +85,7 @@ def crawler(pic_lists, pic_set, file_of_img, file_of_err_img):
             for pic_url in pic_set:
                 pic_name = pic_url.split('/')[-1]
                 try:
-                    urlretrieve(pic_url, './img_twice/' + pic_name)
+                    urlretrieve(pic_url, '../pic_handle/sample/' + pic_name)
                     ok_i += 1
                 # except socket.timeout:
                 #     count = 1
@@ -80,4 +108,4 @@ def crawler(pic_lists, pic_set, file_of_img, file_of_err_img):
                             time.time(), ok_i, err_i, (ok_i + err_i) / size * 100, time.time() - start_time))
 
 
-crawler_twice()
+crawler_demo()

@@ -20,7 +20,7 @@
 
 2018-11-06 16:07:12 ～ 2018-11-07 05:25:12
 
-# MongoDB Cmd
+## MongoDB Cmd
 
 ```
 db.getCollection('newsclues_ready').find({label:"truth", category:{$nin:["军事", "娱乐"]}}).sort({timestamp:-1})
@@ -31,6 +31,14 @@ db.getCollection('event_ready').find({weibo:{$elemMatch:{userCertify:2}}}).sort(
 db.getCollection('event_ready').find({timestamp:{$gt:1539458594654}}).sort({timestamp:-1}).count()
 
 ```
+
+# Pics Filtering
+
+## SIFT
+
+open-cv版本：
+
+pip install opencv-contrib-python==3.3.1.11
 
 # Linux Cmd
 

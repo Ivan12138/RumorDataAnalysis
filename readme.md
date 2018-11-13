@@ -42,5 +42,5 @@ pip install opencv-contrib-python==3.3.1.11
 
 # Linux Cmd
 
-- ls img -lR |grep "^-"|wc -l
+- ls img_rumor -lR |grep "^-"|wc -l
 - nohup

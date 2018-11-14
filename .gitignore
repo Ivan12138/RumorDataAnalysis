@@ -5,6 +5,7 @@
 
 *.txt
 *.csv
+*.json
 *.numbers
 
 *.jpg

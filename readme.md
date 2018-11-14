@@ -30,6 +30,19 @@ db.getCollection('event_ready').find({weibo:{$elemMatch:{userCertify:2}}}).sort(
 
 db.getCollection('event_ready').find({timestamp:{$gt:1539458594654}}).sort({timestamp:-1}).count()
 
+
+﻿// db.getCollection('judgeWeibo').find({'reportedWeibo.userCertify' : 2})
+
+// 查询reportedUser
+// db.getCollection('judgeWeibo').find({'reportedUser' : {$exists: false}})
+
+// 查询reportedWeibo
+// db.getCollection('judgeWeibo').find({'reportedWeibo.userCertify' : {$exists: false}})
+// db.getCollection('judgeWeibo').find({'reportedWeibo' : {$type: 'object'}, 'reportedWeibo.piclists' : {$exists: false}})
+
+// 全量数据
+db.getCollection('judgeWeibo').find()
+
 ```
 
 # Pics Filtering

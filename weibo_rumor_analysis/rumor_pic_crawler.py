@@ -27,8 +27,8 @@ def crawler(pic_lists, pic_set, file_of_img, file_of_err_img, stored_path):
             for pic_url in pic_set:
                 pic_name = pic_url.split('/')[-1]
                 try:
-                    # 如果url中不含http:前缀，则自动补全
-                    if 'http:' not in pic_url:
+                    # 如果url中不含http: / https:前缀，则自动补全
+                    if 'http:' not in pic_url and 'https:' not in pic_url:
                         pic_url = 'http:' + pic_url
                     urlretrieve(pic_url, os.path.join(stored_path, pic_name))
                     ok_i += 1
@@ -37,8 +37,9 @@ def crawler(pic_lists, pic_set, file_of_img, file_of_err_img, stored_path):
                     err_out.write("[Error] Something wrong in downloading {} !\n".format(pic_url))
                 finally:
                     if (ok_i + err_i) % 100 == 0:
-                        ok_out.write('{:.2f}: Downloading {} pics and {} err_pics, {:.2f}%, {:.2f} sec...\n'.format(
-                            time.time(), ok_i, err_i, (ok_i + err_i) / size * 100, time.time() - start_time))
+                        ok_out.write('{}: Downloading {} pics and {} err_pics, {:.2f}%, {:.2f} sec...\n'.format(
+                            time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), ok_i, err_i,
+                            (ok_i + err_i) / size * 100, time.time() - start_time))
 
 
 def crawler_once():
@@ -59,5 +60,19 @@ def crawler_once():
     crawler(pic_lists, pic_set, 'downloading_rumor_img_log.txt', 'downloading_rumor_img_err_log.txt', '../img_rumor')
 
 
-crawler_once()
-# 161153
+def crawler_twice():
+    with open('downloading_rumor_img_err_log.txt', 'r') as src:
+        lines = src.readlines()
+        url_list = []
+        for line in lines:
+            url = line.split('[Error] Something wrong in downloading ')[1].split(' !')[0]
+            # 去掉http:前缀
+            url = url.split('http:')[1]
+            url_list.append(url)
+
+    url_set = set(url_list)
+    crawler(url_list, url_set, 'downloading_twice_rumor_img_log.txt', 'downloading_twice_rumor_img_err_log.txt',
+            '../img_rumor')
+
+
+crawler_twice()

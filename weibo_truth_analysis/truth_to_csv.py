@@ -12,6 +12,7 @@ valid_timestamp = 1539458594654
 
 filter_keys = ['content', 'url', 'piclist']
 selected_keys = ['name', 'userCertify', 'userWeiboCount', 'userFollowCount', 'userFanCount', 'forward', 'praise']
+extreme_keys = selected_keys + ['pic_num']
 
 
 def gen_csv_with_filter_keys():
@@ -86,5 +87,50 @@ def gen_csv_with_selected_keys():
                         out.write('\n')
 
 
-gen_csv_with_selected_keys()
-# gen_csv_with_filter_keys()
+def get_truth_dict_list():
+    truth_dict_list = []
+    with open(src_file, 'r') as src:
+        lines = src.readlines()
+        for line in lines:
+            weibo_dict = json.loads(line, encoding='UTF-8')
+            # 判断爬取时间
+            if weibo_dict['timestamp'] < valid_timestamp:
+                weibos = weibo_dict['weibo']
+
+                for weibo in weibos:
+                    truth_info = []
+
+                    for key in selected_keys:
+                        if key in weibo.keys():
+                            truth_info.append(weibo[key])
+                        else:
+                            truth_info.append('')
+                    # pic_num
+                    if 'piclist' in weibo.keys() and isinstance(weibo['piclist'], list):
+                        truth_info.append(len(weibo['piclist']))
+                    else:
+                        truth_info.append(0)
+
+                    truth_dict = dict(zip(extreme_keys, truth_info))
+                    truth_dict_list.append(truth_dict)
+
+    return truth_dict_list
+
+
+def write_to_csv(truth_dict_list):
+    with open(des_file, 'w') as out:
+        # Header
+        out.write(extreme_keys[0])
+        for header in extreme_keys[1:]:
+            out.write(',{}'.format(header))
+        out.write('\n')
+
+        # truth_weibo
+        for truth_dict in truth_dict_list:
+            out.write(truth_dict[extreme_keys[0]])
+            for key in extreme_keys[1:]:
+                out.write(',{}'.format(truth_dict[key]))
+            out.write('\n')
+
+
+write_to_csv(get_truth_dict_list())

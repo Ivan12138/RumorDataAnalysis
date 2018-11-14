@@ -1,59 +1,46 @@
-# Crawler
+# Rumor Data Analysis
 
-|          文件           |   数目统计   |
-| :---------------------: | :----------: |
-|       clue_id.txt       |     5979     |
-| weibo_truth_unicode.txt |     5979     |
-|     weibo_truth.txt     |     5979     |
-|      **图片数量**       | **数目统计** |
-|        pic_lists        |    203957    |
-|      unique images      |    184528    |
-|      **爬取结果**       | **数目统计** |
-|           img           | 97230 (20G)  |
-|        img_twice        | 86899 (22G)  |
-|           err           |      64      |
-|         **img**         | 183831 (41G) |
+## Data Description
 
-爬虫耗时：10h + 13h
+### Statistics
 
-2018-11-02 17:06:14 ～ 2018-11-03 03:10:25
+|            类别             |       文件       |   数目统计   |
+| :-------------------------: | :--------------: | :----------: |
+| **真实微博** - 事件线索数量 | weibo_truth.txt  |     5979     |
+|   **真实微博** - 微博数量   |        -         |    154114    |
+|   **真实微博** - 图片数量   |    img_truth     | 183831 (41G) |
+|                             |                  |              |
+|  **谣言微博** -  微博数量   | rumor_weibo.json |    34611     |
+|   **谣言微博** - 图片数量   |    img_rumor     | 26586 (845M) |
 
-2018-11-06 16:07:12 ～ 2018-11-07 05:25:12
+### Source
 
-## MongoDB Cmd
+- 真实微博：来源于[AI识谣系统](https://www.newsverify.com/)
+- 谣言微博：来源于[微博社区管理中心](https://service.account.weibo.com/?type=5&status=4)
 
-```
-db.getCollection('newsclues_ready').find({label:"truth", category:{$nin:["军事", "娱乐"]}}).sort({timestamp:-1})
-db.getCollection('event_ready').find({clue_id:"87b620c2f8aedb60f999f93950c8ac80", update:true})
+## Feature Engineering
 
-db.getCollection('event_ready').find({weibo:{$elemMatch:{userCertify:2}}}).sort({timestamp:-1}).limit(10)
+### Overview
 
-db.getCollection('event_ready').find({timestamp:{$gt:1539458594654}}).sort({timestamp:-1}).count()
+- [真实微博](https://github.com/RMSnow/RumorDataAnalysis/blob/master/weibo_truth_analysis/TruthAnalysis.ipynb)
+- [谣言微博](https://github.com/RMSnow/RumorDataAnalysis/blob/master/weibo_rumor_analysis/RumorAnalysis.ipynb)
 
+### References
 
-﻿// db.getCollection('judgeWeibo').find({'reportedWeibo.userCertify' : 2})
+- [seaborn](https://seaborn.pydata.org/tutorial.html)
 
-// 查询reportedUser
-// db.getCollection('judgeWeibo').find({'reportedUser' : {$exists: false}})
+## Pictures Filtering
 
-// 查询reportedWeibo
-// db.getCollection('judgeWeibo').find({'reportedWeibo.userCertify' : {$exists: false}})
-// db.getCollection('judgeWeibo').find({'reportedWeibo' : {$type: 'object'}, 'reportedWeibo.piclists' : {$exists: false}})
+### SIFT
 
-// 全量数据
-db.getCollection('judgeWeibo').find()
+- SIFT原理：[OpenCV-Python教程:36.SIFT（尺度不变特征变换）](https://www.jianshu.com/p/c0379c931e74)
 
-```
+### Dependency
 
-# Pics Filtering
+- python == 3.5
+- pip install **opencv-contrib-python**==**3.3**.1.11
 
-## SIFT
+### References
 
-open-cv版本：
-
-pip install opencv-contrib-python==3.3.1.11
-
-# Linux Cmd
-
-- ls img_rumor -lR |grep "^-"|wc -l
-- nohup
+- [相似图片检测系统的搭建](https://juejin.im/post/59e7101a51882521ad0f3bfa)
+- [图像检索：BoW图像检索原理与实战](https://yongyuan.name/blog/CBIR-BoW-for-image-retrieval-and-practice.html)

@@ -32,8 +32,39 @@ def gen_rumor_info():
                         rumor_info.append(dict(zip(headers, [user_certify, weibo_forward, weibo_praise, pic_num])))
 
 
-def write_to_csv():
-    with open(os.path.join(file_path, 'rumor_info.csv'), 'w') as out:
+def gen_rumor_info_updated(updated_file):
+    with open(os.path.join(file_path, updated_file), 'r') as src:
+        lines = src.readlines()
+        for line in lines:
+            judge_info = json.loads(line)
+            rumor_weibo = judge_info['reportedWeibo']
+
+            # 判断是否"已被发布者删除"
+            if not isinstance(rumor_weibo, dict):
+                continue
+            # 判断用户认证的字段
+            if 'userCertify' not in judge_info.keys():
+                continue
+
+            # 把forward、praise的异常值设为-1
+            user_certify = judge_info['userCertify']
+            weibo_forward = rumor_weibo['forward'] if 'forward' in rumor_weibo.keys() else -1
+            weibo_praise = rumor_weibo['praise'] if 'praise' in rumor_weibo.keys() else -1
+            pic_num = len(rumor_weibo['piclists'])
+            try:
+                weibo_forward = int(weibo_forward)
+            except ValueError:
+                weibo_forward = -1
+            try:
+                weibo_praise = int(weibo_praise)
+            except ValueError:
+                weibo_praise = -1
+
+            rumor_info.append(dict(zip(headers, [user_certify, weibo_forward, weibo_praise, pic_num])))
+
+
+def write_to_csv(csv_file):
+    with open(os.path.join(file_path, csv_file), 'w') as out:
         out.write(headers[0])
         for header in headers[1:]:
             out.write(',{}'.format(header))
@@ -46,5 +77,6 @@ def write_to_csv():
             out.write('\n')
 
 
-gen_rumor_info()
-write_to_csv()
+gen_rumor_info_updated('rumor_weibo_updated.json')
+# write_to_csv('rumor_info.csv')
+write_to_csv('rumor_info_updated.csv')

@@ -2,38 +2,117 @@
 
 # ============================ 真实微博：相似文本去重 ============================
 
-import synonyms
 import json
+import SinglePassOfContent
+import traceback
+import time
+
+userServer = True
 
 weibo_file = '../weibo_truth_analysis/file/_sample_weibo_truth.txt'
 text_similarity_file = 'file/_sample_text_similarity.txt'
+filtered_weibo_file = 'file/_sample_filtered_weibo_truth.txt'
+filtered_weibo_file_pretty = 'file/_sample_filtered_weibo_truth_pretty.txt'
+
+if userServer is True:
+    weibo_file = '../weibo_truth_analysis/file/weibo_truth.txt'
+    text_similarity_file = 'file/text_similarity.txt'
+    filtered_weibo_file = 'file/filtered_weibo_truth.txt'
+    filtered_weibo_file_pretty = 'file/filtered_weibo_truth_pretty.txt'
+
+log_file = 'file/log.txt'
 
 
-def show_threshold():
-    with open(weibo_file, 'r') as src:
-        with open(text_similarity_file, 'w') as out:
+def main():
+    with open(log_file, 'w') as log:
+        with open(weibo_file, 'r') as src:
+            out_pretty = open(filtered_weibo_file_pretty, 'w')
+            out = open(filtered_weibo_file, 'w')
+
             lines = src.readlines()
             for line in lines:
-                event = json.loads(line)
-                event_weibos = event['weibo']
-                contents = []
-                for weibo in event_weibos:
-                    contents.append(weibo['content'])
+                try:
+                    start_time = time.time()
+                    event = json.loads(line)
+                    if 'weibo' not in event.keys():
+                        continue
+                    event_weibos = event['weibo']
 
-                for index_x, content_x in enumerate(contents):
-                    for index_y, content_y in enumerate(contents):
-                        if index_x != index_y:
-                            similarity = synonyms.compare(content_x, content_y)
-                            out.write('{}\n{}\n{}\n\n'.format(content_x, content_y, similarity))
+                    # 存储微博的属性信息，包括微博内容(content)、图片数(pic_num)、转赞评之和(propagation_num)
+                    weibos_dict_list = []
+                    for weibo in event_weibos:
+                        if not isinstance(weibo, dict):
+                            continue
+
+                        content = weibo['content']
+
+                        if 'piclist' in weibo.keys() and isinstance(weibo['piclist'], list):
+                            pic_num = len(weibo['piclist'])
+                        else:
+                            pic_num = 0
+
+                        propagation_num = 0
+                        if 'forward' in weibo.keys():
+                            try:
+                                propagation_num += int(weibo['forward'])
+                            except:
+                                pass
+                        if 'praise' in weibo.keys():
+                            try:
+                                propagation_num += int(weibo['praise'])
+                            except:
+                                pass
+                        if 'comment' in weibo.keys():
+                            try:
+                                propagation_num += int(weibo['comment'])
+                            except:
+                                pass
+
+                        weibos_dict_list.append(
+                            {'content': content, 'pic_num': pic_num, 'propagation_num': propagation_num})
+
+                    # 开始进行SinglePass
+                    weibos_content_list = [weibos_dict['content'] for weibos_dict in weibos_dict_list]
+                    single_pass_clustering = SinglePassOfContent.SinglePassClusterOfContent(weibos_content_list)
+
+                    # 保留规则：#1 图片数 #2 转赞评之和
+                    reserved_weibos_index = []
+                    for cluster_unit in single_pass_clustering.cluster_list:
+                        index_list = cluster_unit.node_list
+                        reserved_index = index_list[0]
+                        for index in index_list[1:]:
+                            pic_num_a = weibos_dict_list[index]['pic_num']
+                            pic_num_b = weibos_dict_list[reserved_index]['pic_num']
+                            if pic_num_a > pic_num_b:
+                                reserved_index = index
+                            elif pic_num_a == pic_num_b:
+                                propagation_num_a = weibos_dict_list[index]['propagation_num']
+                                propagation_num_b = weibos_dict_list[reserved_index]['propagation_num']
+                                if propagation_num_a > propagation_num_b:
+                                    reserved_index = index
+                        reserved_weibos_index.append(reserved_index)
+
+                    # 打印聚类结果
+                    log.write('[{}] 事件 {}/{} 聚类完成，耗时{:.1f}s，聚类结果：\n'.format(
+                        time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()),
+                        lines.index(line) + 1, len(lines), time.time() - start_time))
+                    log.write('聚类前共有微博{}条，聚类后有{}条。把结果写入文件...\n'.format(len(event_weibos), len(reserved_weibos_index)))
+
+                    # 将聚类后的结果写入新的文件
+                    filtered_event = {'id': event['id'], 'keywords': event['keywords'],
+                                      'filtered_weibo': [event_weibos[index] for index in reserved_weibos_index]}
+
+                    out.write('{}\n'.format(json.dumps(filtered_event, ensure_ascii=False)))
+                    out_pretty.write(
+                        '{}\n'.format(json.dumps(filtered_event, ensure_ascii=False, indent=4, separators=(',', ':'))))
+
+                except:
+                    log.write('-------------------------------------------\n')
+                    log.write('{}\n'.format(traceback.print_exc()))
+                    log.write('-------------------------------------------\n')
+
+            out_pretty.close()
+            out.close()
 
 
-def test():
-    sen1 = '\n\t\t【5大主题高铁春游线路饱览最美春色】2016年春游期间，上海铁路局开行图定旅客列车总对数达772.5对，较去年同比增加84.5对;其中高铁动车组列车为518.5对，较去年同比增加81对。特点：上海、杭州、南京至上饶(三清山)、武夷山等地二日往返(合福高铁赣闽段) （分享自 @凤凰网） http://t.cn/Rqhv0n3\n\t\t'
-    sen2 = '\n\t\t本周五《我是歌手》第四季“歌王之战”总决赛帮帮唱阵容出炉↓↓↓@CoCo李玟 &amp;Ne-Yo@張信哲JeffChang &amp;Akon@李克勤 &amp;#林子祥##叶倩文# @容祖儿 &amp;@William威廉陈伟霆 @徐佳瑩 &amp;@林俊杰 @黄致列HCY &amp;Gummy朴志妍\n\t\t\t...展开全文c\n\t\t'
-    sen3 = '山东,济宁学院大一男生因分手问题将女友捅死 两人均19岁 http://t.cn/RGD99DC'
-    sen4 = '正在图书馆一惊一乍的看这些恐怖电影解析，突然听到图书管理员跟男盆友打电话说济宁学院一个男生把前女友捅死后若无其事的回宿舍吃薯条打游戏可怕'
-    print(synonyms.compare(sen3, sen4))
-
-
-# show_threshold()
-test()
+main()

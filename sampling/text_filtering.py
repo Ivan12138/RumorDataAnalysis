@@ -110,6 +110,10 @@ def main():
                     log.write('-------------------------------------------\n')
                     log.write('{}\n'.format(traceback.print_exc()))
                     log.write('-------------------------------------------\n')
+                finally:
+                    log.flush()
+                    out.flush()
+                    out_pretty.flush()
 
             out_pretty.close()
             out.close()

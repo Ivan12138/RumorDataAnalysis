@@ -1,9 +1,9 @@
 # encoding:utf-8
 
-# ============================ 真实微博：相似文本去重 ============================
+# ============================ 真实微博：相似文本去重 (Strategy: word2vec) ============================
 
 import json
-import SinglePassOfContent
+import Word2VecSinglePassOfContent
 import traceback
 import time
 
@@ -73,7 +73,7 @@ def main():
 
                     # 开始进行SinglePass
                     weibos_content_list = [weibos_dict['content'] for weibos_dict in weibos_dict_list]
-                    single_pass_clustering = SinglePassOfContent.SinglePassClusterOfContent(weibos_content_list)
+                    single_pass_clustering = Word2VecSinglePassOfContent.SinglePassClusterOfContent(weibos_content_list)
 
                     # 保留规则：#1 图片数 #2 转赞评之和
                     reserved_weibos_index = []

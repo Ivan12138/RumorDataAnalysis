@@ -141,6 +141,3 @@ def get_weibo_truth_sampling_file():
 
     out.close()
     out_pretty.close()
-
-
-get_weibo_truth_sampling_file()

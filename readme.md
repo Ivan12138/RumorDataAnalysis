@@ -29,6 +29,40 @@
 
 - [seaborn](https://seaborn.pydata.org/tutorial.html)
 
+## Sampling of Truth Weibos
+
+### Text Filtering （Optional）
+
+#### 采样原则
+
+- 尽量选取图片数多的微博
+- 图片数相同时，选取**转赞评**多的微博
+
+### Sampling
+
+#### 采样原则
+
+- 保证事件的微博数量比例
+- 保证`userCertify`的分布与谣言微博相同
+
+#### 采样结果
+
+|              |         微博数量         | 图片数量 |            userCertify 分布             |
+| :----------: | :----------------------: | :------: | :-------------------------------------: |
+|   谣言微博   |          34611           |  26586   |    （27916）22745:4148:1023 = 22:4:1    |
+|   真实微博   | 154114（来自5979个事件） |  183831  |   （154114）60646:24750:68718 = 5:2:5   |
+|              |                          |          |                                         |
+| **采样结果** |          35358           |  38550   | （35358）= 29209:4857:1292 = 22.6:3.8:1 |
+
+#### 附：参数文件说明
+
+| 文件名                                    |         说明         | 参数                                                         |
+| :---------------------------------------- | :------------------: | :----------------------------------------------------------- |
+| `file/pkl/event_features.pkl`             |  真实微博的事件特性  | `event_features_list`                                        |
+| `file/pkl/event_sampling_factor.pkl`      |       取样因子       | `events_num, weibos_num, event_weibos_num_list, global_sampling_factor, event_sampling_factor_list` |
+| `file/pkl/certify_num_of_every_event.pkl` | 每个事件的需取样情况 | `sampling_num_of_event, certify_num_of_event`                |
+| `file/pkl/result.pkl`                     |  每个事件的取样结果  | `certify_num_of_event, result_index_of_event`                |
+
 ## Pictures Filtering
 
 ### SIFT

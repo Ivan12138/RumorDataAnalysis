@@ -4,6 +4,13 @@ import json
 from sklearn.externals import joblib
 import random
 
+# Rumor Features
+rumor_weibo_sum = 34611
+rumor_certify = 27916
+rumor_0 = 22745
+rumor_1 = 4148
+rumor_2 = 1023
+
 
 # 得到每个事件的 微博数/总微博数
 def get_event_sampling_factor():
@@ -20,19 +27,14 @@ def get_event_sampling_factor():
             weibos_num += len(weibos)
             event_weibos_num_list.append(len(weibos))
 
-            # test
-            # sorted_index = lines.sorted_index(line)
-            # if sorted_index < 5:
-            #     print(len(weibos))
-
         event_sampling_factor_list = [x / weibos_num for x in event_weibos_num_list]
 
-    global_sampling_factor = 34611 / weibos_num
+    global_sampling_factor = rumor_weibo_sum / weibos_num
     joblib.dump((events_num, weibos_num, event_weibos_num_list, global_sampling_factor, event_sampling_factor_list),
                 'file/pkl/event_sampling_factor.pkl')
 
 
-def get_event_certify_num():
+def get_event_certify_num(threshold=0.95):
     events_num, weibos_num, event_weibos_num_list, global_sampling_factor, event_sampling_factor_list = joblib.load(
         'file/pkl/event_sampling_factor.pkl')
     # 计算在每个事件中抽取的微博数
@@ -43,7 +45,7 @@ def get_event_certify_num():
     # 计算不同的userCertify字段应该分别抽取多少微博
     certify_num_of_event = []
     for x in sampling_num_of_event:
-        certify_num = [22 / 27 * x, 4 / 27 * x, 1 / 27 * x]
+        certify_num = [rumor_0 / rumor_certify * x, rumor_1 / rumor_certify * x, rumor_2 / rumor_certify * x]
         certify_num = [int(x + 0.5) for x in certify_num]
         # certify_num = [1 if x == 0 else x for x in certify_num]
 
@@ -51,7 +53,7 @@ def get_event_certify_num():
         updated_certify_num = []
         for num in certify_num:
             rand = random.random()
-            if rand >= 0.9:
+            if rand >= threshold:
                 num = 1 if num == 0 else num
             updated_certify_num.append(num)
 
@@ -102,3 +104,8 @@ def get_event_features():
 
             event_features_list.append(event_features)
     joblib.dump(event_features_list, 'file/pkl/event_features.pkl')
+
+
+# get_event_sampling_factor()
+get_event_certify_num()
+# get_event_features()

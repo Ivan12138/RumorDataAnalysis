@@ -28,7 +28,7 @@ events_id = ['B4344055DFF83CC9E409148781C675FC1462253821989', '04C1CE33DFEDE89DF
 def see_how_to_tune_threshold(event_id, images):
     im_features, image_paths, idf, numWords, voc = joblib.load("pkl/{}.pkl".format(event_id))
 
-    # Get index of Images
+    # Get sorted_index of Images
     path = os.path.join('../pic_filtering_phash/clustering', event_id)
     im_index = [image_paths.index(os.path.join(path, i)) for i in images]
 

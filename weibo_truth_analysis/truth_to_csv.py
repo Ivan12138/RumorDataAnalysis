@@ -39,7 +39,7 @@ def gen_csv_with_filter_keys():
                         # 查找缺失的问题
                         # if len(weibo) != len(headers):
                         #     print('Something wrong in line{}, weibo{} and length of the weibo is {}.'.format(
-                        #         lines.index(line), weibos.index(weibo), len(weibo)))
+                        #         lines.sorted_index(line), weibos.sorted_index(weibo), len(weibo)))
                         #     count += 1
 
                         keys = weibo.keys()

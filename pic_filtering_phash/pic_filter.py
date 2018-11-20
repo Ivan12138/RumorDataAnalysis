@@ -123,9 +123,9 @@ class SinglePassCluster:
         :return:
         """
         # print("************ one-pass cluster result ************")
-        # for index, cluster in enumerate(self.cluster_list):
+        # for sorted_index, cluster in enumerate(self.cluster_list):
         #
-        #     print("cluster: %s " % index)  # 簇的序号
+        #     print("cluster: %s " % sorted_index)  # 簇的序号
         #     print(cluster.node_list)  # 该簇的节点列表
         #     if label_dict is not None:
         #         print(" ".join([label_dict[n] for n in cluster.node_list]))  # 若有提供标签字典，则输出该簇的标签

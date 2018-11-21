@@ -1,0 +1,47 @@
+
+==================================== MongoDB Cmd ====================================
+
+db.getCollection('newsclues_ready').find({label:"truth", category:{$nin:["军事", "娱乐"]}}).sort({timestamp:-1})
+db.getCollection('event_ready').find({clue_id:"87b620c2f8aedb60f999f93950c8ac80", update:true})
+﻿F815D65FA9594888F0D1654844069609
+
+db.getCollection('event_ready').find({weibo:{$elemMatch:{userCertify:2}}}).sort({timestamp:-1}).limit(10)
+
+db.getCollection('event_ready').find({timestamp:{$gt:1539458594654}}).sort({timestamp:-1}).count()
+
+
+// db.getCollection('judgeWeibo').find({'reportedWeibo.userCertify' : 2})
+
+// 查询reportedUser
+// db.getCollection('judgeWeibo').find({'reportedUser' : {$exists: false}})
+
+// 查询reportedWeibo
+// db.getCollection('judgeWeibo').find({'reportedWeibo.userCertify' : {$exists: false}})
+// db.getCollection('judgeWeibo').find({'reportedWeibo' : {$type: 'object'}, 'reportedWeibo.piclists' : {$exists: false}})
+
+// 全量数据
+db.getCollection('judgeWeibo').find()
+
+==================================== Linux Cmd ====================================
+
+ls img_rumor -lR |grep "^-"|wc -l
+
+==================================== To Do ====================================
+[谣言-文本去重]
+统计去重后的结果：
+（1）微博数
+（2）图片数
+
+
+[真实微博-文本去重]
+1. 去重操作
+2. 统计去重后的结果
+
+[工作总结]
+1. 文档说明（参数文件、结果txt说明等）
+2. 服务器代码同步
+
+[Sampling]
+根据前两步的结果，改变超参数
+
+[图片去重]

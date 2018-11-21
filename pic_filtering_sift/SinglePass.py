@@ -96,7 +96,7 @@ class SinglePassCluster:
         self.cluster_list[0].add_node(0, self.vectors[0])  # 将读入的第一个节点归于该簇
         # TODO: Check
         for index in range(1, len(self.vectors)):
-            max_similarity = cosine_similarity(vec_a=self.vectors[0],
+            max_similarity = cosine_similarity(vec_a=self.vectors[index],
                                                vec_b=self.cluster_list[0].centroid)  # 与簇的质心的最大相似度
             max_cluster_index = 0  # 最大相似度的簇的索引
             for cluster_index, cluster in enumerate(self.cluster_list[1:]):

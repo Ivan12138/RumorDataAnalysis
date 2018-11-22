@@ -44,7 +44,10 @@ def clustering(category, threshold=0.6):
     joblib.dump(single_pass_cluster, 'file/pkl/tf_idf_{}_clustering.pkl'.format(category))
 
 
-# test on client
+# clustering('truth_4000')
+
+
+# 在本地检测聚类的效果（如测试阈值、features数量等）
 def test_on_client():
     single_pass_cluster = joblib.load('file/pkl/tf_idf_rumor_test_clustering.pkl')
     cluster_list = single_pass_cluster.cluster_list
@@ -55,22 +58,6 @@ def test_on_client():
                 for i in cluster.node_list:
                     out.write('{}'.format(lines[i]))
                 out.write('-----------------------------------\n')
-
-
-# 查看聚类结果
-def show_clustering_rumor():
-    single_pass_cluster = joblib.load('file/pkl/tf_idf_{}_clustering.pkl'.format('rumor_4000'))
-    cluster_list = single_pass_cluster.cluster_list
-    with open('file/corpus/corpus_of_rumor.txt', 'r') as src:
-        with open('file/rumor_4000.txt', 'w') as out:
-            lines = src.readlines()
-            for cluster in cluster_list:
-                for i in cluster.node_list:
-                    out.write('{}'.format(lines[i]))
-                out.write('-----------------------------------\n')
-
-
-# show_clustering_rumor()
 
 
 # 生成过滤后的谣言数据集
@@ -140,4 +127,45 @@ def gen_filtered_rumor():
     out_pretty.close()
 
 
-gen_filtered_rumor()
+# 查看聚类结果
+def show_clustering_rumor():
+    single_pass_cluster = joblib.load('file/pkl/tf_idf_{}_clustering.pkl'.format('rumor_4000'))
+    cluster_list = single_pass_cluster.cluster_list
+
+    # 输出过滤后的文本内容
+    # with open('file/corpus/corpus_of_rumor.txt', 'r', encoding='utf-8') as src:
+    #     with open('file/rumor_4000.txt', 'w', encoding='utf-8') as out:
+    #         lines = src.readlines()
+    #         for cluster in cluster_list:
+    #             for i in cluster.node_list:
+    #                 out.write('{}'.format(lines[i]))
+    #             out.write('-----------------------------------\n')
+
+    # 统计微博数量、图片数量、userCertify分布
+    with open('file/weibo_rumor_text_filtered.json', 'r', encoding='utf-8') as src:
+        lines = src.readlines()
+        filtered_weibo_num = len(lines)
+        filtered_pic_num = 0
+        certify_0 = 0
+        certify_1 = 0
+        certify_2 = 0
+
+        for line in lines:
+            rumor = json.loads(line, encoding='utf-8-sig')
+            filtered_pic_num += len(rumor['reportedWeibo']['piclists'])
+            if 'userCertify' in rumor.keys():
+                certify = rumor['userCertify']
+                if certify == 0:
+                    certify_0 += 1
+                elif certify == 1:
+                    certify_1 += 1
+                else:
+                    certify_2 += 1
+
+        print('聚类后的微博数量为{}，图片数量为{}'.format(filtered_weibo_num, filtered_pic_num))
+        print('（{}）{}:{}:{} = {:.1f} : {:.1f} : 1'.format(
+            certify_0 + certify_1 + certify_2, certify_0, certify_1,
+            certify_2, certify_0 / certify_2, certify_1 / certify_2))
+
+
+show_clustering_rumor()

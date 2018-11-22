@@ -54,8 +54,18 @@ def cut_words_of_rumor():
             out.write('{}'.format(c))
 
 
+# 真实微博语料库-分词
 def cut_words_of_truth():
-    pass
+    corpus = []
+    with open('file/corpus/corpus_of_truth.txt', 'r', encoding='utf-8') as src:
+        lines = src.readlines()
+        for line in lines:
+            seg_list = jieba.cut(line)
+            result = ' '.join(seg_list)
+            corpus.append(result)
+    with open('file/corpus/cut_corpus_of_truth.txt', 'w', encoding='utf-8') as out:
+        for c in corpus:
+            out.write('{}'.format(c))
 
 
 # 谣言语料库-得到tf-idf向量
@@ -75,5 +85,20 @@ def get_tf_idf_of_rumor(features_num=4000):
     joblib.dump((vocabulary, tf_idf), 'file/pkl/tf_idf_of_rumor_{}.pkl'.format(features_num))
 
 
-def get_tf_idf_of_truth():
-    pass
+# 真实语料库-得到tf-idf向量
+def get_tf_idf_of_truth(features_num=4000):
+    corpus = []
+    with open('file/corpus/cut_corpus_of_truth.txt', 'r', encoding='utf-8') as src:
+        lines = src.readlines()
+        for line in lines:
+            corpus.append(line)
+        print('The size of corpus is {}'.format(len(corpus)))
+
+    vectorizer = CountVectorizer(max_features=features_num)
+    transformer = TfidfTransformer()
+    tf_idf = transformer.fit_transform(vectorizer.fit_transform(corpus))
+    vocabulary = vectorizer.get_feature_names()
+
+    joblib.dump((vocabulary, tf_idf), 'file/pkl/tf_idf_of_truth_{}.pkl'.format(features_num))
+
+# get_tf_idf_of_truth()

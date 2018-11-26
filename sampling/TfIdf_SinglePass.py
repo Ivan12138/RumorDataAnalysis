@@ -48,6 +48,12 @@ class SinglePassCluster:
     def clustering_by_cosine_similarity(self):
         self.cluster_list.append(ClusterUnit())  # 初始新建一个簇
         self.cluster_list[0].add_node(0, self.vectors[0])  # 将读入的第一个节点归于该簇
+
+        # 输出聚类的结果
+        src = open('file/corpus/corpus_of_truth.txt', 'r', encoding='utf-8')
+        lines = src.readlines()
+        out = open('file/truth_clustering_cached.txt', 'w', encoding='utf-8')
+
         # TODO: Check
         for index in range(1, len(self.vectors)):
             start_time = time.time()
@@ -71,12 +77,16 @@ class SinglePassCluster:
                 del new_cluster
 
             # print process
-            print('[{}] 第 {}/{} 个vector 处理成功，耗时{:.1f}s，目前共有{}个簇...'.format(
-                time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), index, len(self.vectors),
-                time.time() - start_time, len(self.cluster_list)))
-            # 每处理500个vector，就存储一次中间结果
-            # if index % 500 == 0:
-            #     joblib.dump(self, 'file/pkl/clustering_rumor/vector_{}.pkl'.format(index))
+            if index % 50 == 0:
+                print('[{}] 第 {}/{} 个vector 处理成功，耗时{:.1f}s，目前共有{}个簇...'.format(
+                    time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), index, len(self.vectors),
+                    time.time() - start_time, len(self.cluster_list)))
+            if index % 1000 == 0:
+                for cluster in self.cluster_list:
+                    for i in cluster.node_list:
+                        out.write('{}'.format(lines[i]))
+                    out.write('-----------------------------------\n')
+                    out.flush()
 
 
 def cosine_similarity(vec_a, vec_b):

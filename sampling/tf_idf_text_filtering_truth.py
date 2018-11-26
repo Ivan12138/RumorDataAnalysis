@@ -9,62 +9,13 @@ import random
 import TfIdf_SinglePass
 
 
-def gen_filtered_truth():
-    single_pass_cluster = joblib.load('file/pkl/tf_idf_{}_clustering.pkl'.format('truth_4000'))
-    cluster_list = single_pass_cluster.cluster_list
-
-    out = open('file/weibo_truth_text_filtered.json', 'w', encoding='utf-8')
-    out_pretty = open('file/weibo_truth_text_filtered_pretty.json', 'w', encoding='utf-8')
-    with open('../weibo_truth_analysis/file/weibo_truth.txt', 'r', encoding='utf-8') as src:
-        events = src.readlines()
-
-    valid_cluster_num = 0
-    missing_pics_cluster_num = 0
-    with open('file/corpus/corpus_of_truth.txt', 'r', encoding='utf-8') as corpus:
-        lines = corpus.readlines()
-
-        for cluster in cluster_list:
-            truth_weibos = []
-
-            for index in cluster.node_list:
-                line = lines[index]
-                event_index = int(line.split(',')[0][1:])
-                weibo_index = int(line.split(',')[1].split(')')[0][1:])
-
-                event = json.loads(events[event_index], encoding='utf-8')
-                truth_weibo = event['weibo'][weibo_index]
-
-                if 'piclist' in truth_weibo.keys() and isinstance(truth_weibo['piclist'], list):
-                    if len(truth_weibo['piclist']) != 0:
-                        # 添加_position字段
-                        truth_weibo['_position'] = (event_index, weibo_index)
-                        truth_weibos.append(truth_weibo)
-
-            # 选取规则：在有图片的微博中随机取
-            if len(truth_weibos) <= 0:
-                missing_pics_cluster_num += 1
-                continue
-            valid_cluster_num += 1
-            chosen_truth = random.sample(truth_weibos, 1)[0]
-
-            out.write('{}\n'.format(json.dumps(chosen_truth, ensure_ascii=False)))
-            out_pretty.write(
-                '{}\n'.format(json.dumps(chosen_truth, ensure_ascii=False, indent=4, separators=(',', ':'))))
-            out.flush()
-            out_pretty.flush()
-    out.close()
-    out_pretty.close()
-
-    print('有效的簇为{}个，缺少图片的簇为{}个'.format(valid_cluster_num, missing_pics_cluster_num))
-
-
 def show_clustering_truth():
-    single_pass_cluster = joblib.load('file/pkl/tf_idf_{}_clustering.pkl'.format('rumor_4000'))
+    single_pass_cluster = joblib.load('file/pkl/tf_idf_{}_clustering.pkl'.format('truth_1'))
     cluster_list = single_pass_cluster.cluster_list
 
     # 输出过滤后的文本内容
     with open('file/corpus/corpus_of_truth.txt', 'r', encoding='utf-8') as src:
-        with open('file/truth_4000.txt', 'w', encoding='utf-8') as out:
+        with open('file/clustering/truth_1.txt', 'w', encoding='utf-8') as out:
             lines = src.readlines()
             for cluster in cluster_list:
                 for i in cluster.node_list:
@@ -100,7 +51,7 @@ def show_clustering_truth():
 
 
 # 把15.8w的数据分成4份，分别聚类
-def clustering_truth(threshold=0.6):
+def clustering_truth_to_4_fold(threshold=0.6):
     _, tf_idf = joblib.load('file/pkl/tf_idf_of_{}.pkl'.format('truth_4000'))
     tf_idf_array = preprocessing.normalize(tf_idf.toarray(), norm='l2')
 
@@ -117,4 +68,110 @@ def clustering_truth(threshold=0.6):
     joblib.dump(single_pass_cluster, 'file/pkl/tf_idf_{}_clustering.pkl'.format('truth_4'))
 
 
-clustering_truth()
+# 输出每一折聚类的效果
+def gen_clustering(num):
+    single_pass_cluster = joblib.load('file/pkl/tf_idf_truth_{}_clustering.pkl'.format(num))
+    cluster_list = single_pass_cluster.cluster_list
+
+    print('过滤前共有{}条微博，过滤后为{}条。正在写入文件...'.format(40000, len(cluster_list)))
+    # 输出过滤后的文本内容
+    with open('file/corpus/corpus_of_truth.txt', 'r', encoding='utf-8') as src:
+        with open('file/clustering/truth_{}.txt'.format(num), 'w', encoding='utf-8') as out:
+            lines = src.readlines()
+            for cluster in cluster_list:
+                for i in cluster.node_list:
+                    out.write('{}'.format(lines[40000 * (num - 1) + i]))
+                out.write('-----------------------------------\n')
+                out.flush()
+
+
+def gen_filtered_truth_from_4_fold():
+    with open('file/corpus/corpus_of_truth.txt', 'r', encoding='utf-8') as src:
+        lines = src.readlines()
+
+    with open('../weibo_truth_analysis/file/weibo_truth.txt', 'r', encoding='utf-8') as src:
+        events = src.readlines()
+
+    valid_line_sum = 0
+
+    out = open('file/corpus/corpus_of_truth_4_fold.txt', 'w', encoding='utf-8')
+    for num in range(1, 5):
+        single_pass_cluster = joblib.load('file/pkl/tf_idf_truth_{}_clustering.pkl'.format(num))
+        cluster_list = single_pass_cluster.cluster_list
+
+        valid_cluster_num = 0
+        missing_pics_cluster_num = 0
+
+        for cluster in cluster_list:
+            valid_indexes = []
+
+            for index in cluster.node_list:
+                line = lines[index + 40000 * (num - 1)]
+                event_index = int(line.split(',')[0][1:])
+                weibo_index = int(line.split(',')[1].split(')')[0][1:])
+
+                event = json.loads(events[event_index], encoding='utf-8')
+                truth_weibo = event['weibo'][weibo_index]
+
+                if 'piclist' in truth_weibo.keys() and isinstance(truth_weibo['piclist'], list):
+                    if len(truth_weibo['piclist']) != 0:
+                        valid_indexes.append(index)
+
+            # 选取规则：在有图片的微博中随机取
+            if len(valid_indexes) <= 0:
+                missing_pics_cluster_num += 1
+                continue
+            valid_cluster_num += 1
+            chosen_index = random.sample(valid_indexes, 1)[0]
+
+            out.write('{}'.format(lines[chosen_index + 40000 * (num - 1)]))
+            out.flush()
+
+        valid_line_sum += valid_cluster_num
+        print('第{}组 cluster 已处理完成...'.format(num))
+        print('有效的簇为{}个，缺少图片的簇为{}个'.format(valid_cluster_num, missing_pics_cluster_num))
+
+    out.close()
+
+    with open('file/corpus/corpus_of_truth_4_fold.txt', 'r', encoding='utf-8') as src:
+        print('处理后的语料库长度为:{}（有效的簇个数为：{}）'.format(len(src.readlines()), valid_line_sum))
+
+
+# 真实语料库-4 fold-得到tf-idf向量
+def get_tf_idf_of_truth(features_num=4000):
+    corpus = []
+    with open('file/corpus/corpus_of_truth_4_fold.txt', 'r', encoding='utf-8') as src:
+        lines = src.readlines()
+        for line in lines:
+            seg_list = jieba.cut(line)
+            result = ' '.join(seg_list)
+            corpus.append(result)
+    with open('file/corpus/cut_corpus_of_truth_4_fold.txt', 'w', encoding='utf-8') as out:
+        for c in corpus:
+            out.write('{}'.format(c))
+
+    corpus = []
+    with open('file/corpus/cut_corpus_of_truth_4_fold.txt', 'r', encoding='utf-8') as src:
+        lines = src.readlines()
+        for line in lines:
+            corpus.append(line)
+        print('The size of corpus is {}'.format(len(corpus)))
+
+    vectorizer = CountVectorizer(max_features=features_num)
+    transformer = TfidfTransformer()
+    tf_idf = transformer.fit_transform(vectorizer.fit_transform(corpus))
+    vocabulary = vectorizer.get_feature_names()
+
+    joblib.dump((vocabulary, tf_idf), 'file/pkl/tf_idf_of_truth_{}.pkl'.format('4_fold'))
+
+
+# 38180 的数据，重新聚类
+def clustering_truth_from_4_fold(threshold=0.6):
+    _, tf_idf = joblib.load('file/pkl/tf_idf_of_{}.pkl'.format('truth_4_fold'))
+    tf_idf_array = preprocessing.normalize(tf_idf.toarray(), norm='l2')
+
+    single_pass_cluster = TfIdf_SinglePass.SinglePassCluster(tf_idf_array, t=threshold)
+    joblib.dump(single_pass_cluster, 'file/pkl/tf_idf_{}_clustering.pkl'.format('truth_4_fold'))
+
+
+clustering_truth_from_4_fold()

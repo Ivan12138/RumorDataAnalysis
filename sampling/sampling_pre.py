@@ -25,16 +25,6 @@ def rearrange_filtered_truth_by_event():
             truth_weibo = json.loads(line, encoding='utf-8')
             event_index = truth_weibo['_position'][0]
 
-            # filtered_event = filtered_events[event_index]
-
-            # 首次出现的事件
-            # if len(filtered_event) == 0:
-            #     event = json.loads(events[event_index])
-            #     filtered_event['id'] = event['id']
-            #     filtered_event['weibo'] = [truth_weibo]
-            # else:
-            #     filtered_event['weibo'].append(truth_weibo)
-
             # 首次出现的事件
             if event_index not in filtered_events.keys():
                 filtered_events[event_index] = dict()
@@ -59,9 +49,6 @@ def rearrange_filtered_truth_by_event():
         out_pretty.flush()
     out.close()
     out_pretty.close()
-
-
-# rearrange_filtered_truth_by_event()
 
 
 # 得到每个事件的 微博数/总微博数

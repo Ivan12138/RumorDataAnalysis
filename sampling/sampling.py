@@ -1,17 +1,22 @@
 # encoding:utf-8
 
-# ============================ 真实微博：按比例采样 ============================
-# 谣言微博：34611      userCertify字段（0：1：2） = 22：4：1
-# 真实微博：154114     userCertify字段（0：1：2） = 5：2：5
-#
-# 真实微博来源：5979个事件
-
 import json
 from sklearn.externals import joblib
 import random
 import numpy as np
 
 
+def _get_pic_result_for_certify(event_features, certify_num, i):
+    # 获取图片数最大的
+    # top_pic_index = np.argsort(event_features['pic_num_' + str(i)])
+    # result = np.array(event_features['certify_' + str(i)])[top_pic_index[::-1][:certify_num[i]]]
+    # return result
+
+    # 随机获取
+    return np.array(random.sample(event_features['certify_' + str(i)], certify_num[i]))
+
+
+# 计算出采样的索引
 def get_result():
     events_num, weibos_num, event_weibos_num_list, global_sampling_factor, event_sampling_factor_list = joblib.load(
         'file/pkl/event_sampling_factor.pkl')
@@ -30,6 +35,11 @@ def get_result():
         sampling_num = sampling_num_of_event[sorted_index]  # 在本事件中需要抽取的微博数
         certify_num = certify_num_of_event[sorted_index]  # 在本事件中需要抽取的userCertify字段分别为多少
         event_features = event_features_list[sorted_index]  # 事件的属性字典
+
+        # TODO: 如果过滤后的该事件不存在
+        # if event_features == '':
+        #     result_index_of_event[sorted_index] = ''
+        #     continue
 
         # The last one
         if i == len(sorted_index_of_event) - 1:
@@ -91,17 +101,8 @@ def get_result():
     joblib.dump((certify_num_of_event, result_index_of_event), 'file/pkl/result.pkl')
 
 
-def _get_pic_result_for_certify(event_features, certify_num, i):
-    # 获取图片数最大的
-    # top_pic_index = np.argsort(event_features['pic_num_' + str(i)])
-    # result = np.array(event_features['certify_' + str(i)])[top_pic_index[::-1][:certify_num[i]]]
-    # return result
-
-    # 随机获取
-    return np.array(random.sample(event_features['certify_' + str(i)], certify_num[i]))
-
-
-def cal_result_pic_num():
+# 采样后的图片数
+def _cal_result_pic_num():
     certify_num_of_event, result_index_of_event = joblib.load('file/pkl/result.pkl')
     event_features_list = joblib.load('file/pkl/event_features.pkl')
 
@@ -119,21 +120,27 @@ def cal_result_pic_num():
     return sum(result_pic_num_list)
 
 
+# 按照result得到的索引去采样
 def get_weibo_truth_sampling_file():
     certify_num_of_event, result_index_of_event = joblib.load('file/pkl/result.pkl')
 
     sampling_event_dict_list = []
-    with open('../weibo_truth_analysis/file/weibo_truth.txt', 'r') as src:
+    with open('file/weibo_truth_filtered.json', 'r') as src:
         lines = src.readlines()
         for index, line in enumerate(lines):
             event_dict = json.loads(line)
+
+            # TODO: 如果过滤后的该事件不存在
+            # if len(event_dict) == 0:
+            #     continue
+
             result_index = [i for result in result_index_of_event[index] for i in result]
             raw_weibos = event_dict['weibo']
             event_dict['weibo'] = [raw_weibos[i] for i in result_index]
             sampling_event_dict_list.append(event_dict)
 
-    out = open('file/weibo_truth_sampling.txt', 'w')
-    out_pretty = open('file/weibo_truth_sampling_pretty.txt', 'w')
+    out = open('file/weibo_truth_sampling.json', 'w')
+    out_pretty = open('file/weibo_truth_sampling_pretty.json', 'w')
 
     for sampling_event in sampling_event_dict_list:
         out.write('{}\n'.format(json.dumps(sampling_event, ensure_ascii=False)))
@@ -141,3 +148,35 @@ def get_weibo_truth_sampling_file():
 
     out.close()
     out_pretty.close()
+
+    # 统计微博数量、图片数量、userCertify分布
+    with open('file/weibo_truth_sampling.json', 'r', encoding='utf-8') as src:
+        lines = src.readlines()
+        sampling_weibo_num = 0
+        sampling_pic_num = 0
+        certify_0 = 0
+        certify_1 = 0
+        certify_2 = 0
+
+        for line in lines:
+            event = json.loads(line, encoding='utf-8-sig')
+            for truth in event['weibo']:
+                sampling_weibo_num += 1
+                sampling_pic_num += len(truth['piclist'])
+                if 'userCertify' in truth.keys():
+                    certify = truth['userCertify']
+                    if certify == 0:
+                        certify_0 += 1
+                    elif certify == 1:
+                        certify_1 += 1
+                    else:
+                        certify_2 += 1
+
+        print('聚类后的真实微博：数量为{}，图片数量为{}'.format(sampling_weibo_num, sampling_pic_num))
+        print('（{}）{}:{}:{} = {:.1f} : {:.1f} : 1'.format(
+            certify_0 + certify_1 + certify_2, certify_0, certify_1,
+            certify_2, certify_0 / certify_2, certify_1 / certify_2))
+
+
+# get_result()
+get_weibo_truth_sampling_file()

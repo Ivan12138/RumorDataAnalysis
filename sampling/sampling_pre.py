@@ -5,16 +5,72 @@ from sklearn.externals import joblib
 import random
 
 # Rumor Features
-rumor_weibo_sum = 34611
-rumor_certify = 27916
-rumor_0 = 22745
-rumor_1 = 4148
-rumor_2 = 1023
+rumor_weibo_sum = 7880
+rumor_certify = 5942
+rumor_0 = 4439
+rumor_1 = 1284
+rumor_2 = 219
+
+
+# 把过滤后truth微博，重新以event的形式组织
+def rearrange_filtered_truth_by_event():
+    with open('../weibo_truth_analysis/file/weibo_truth.txt', 'r') as src:
+        events = src.readlines()
+
+    # TODO: 对 0 事件的处理
+    # filtered_events = []
+    # for i in range(len(events)):
+    #     filtered_events.append(dict())
+    filtered_events = dict()  # key = index, value = event(dict)
+
+    with open('../text_filtering/file/weibo_truth_once_text_filtered.json', 'r') as src:
+        lines = src.readlines()
+        for line in lines:
+            truth_weibo = json.loads(line, encoding='utf-8')
+            event_index = truth_weibo['_position'][0]
+
+            # filtered_event = filtered_events[event_index]
+
+            # 首次出现的事件
+            # if len(filtered_event) == 0:
+            #     event = json.loads(events[event_index])
+            #     filtered_event['id'] = event['id']
+            #     filtered_event['weibo'] = [truth_weibo]
+            # else:
+            #     filtered_event['weibo'].append(truth_weibo)
+
+            # 首次出现的事件
+            if event_index not in filtered_events.keys():
+                filtered_events[event_index] = dict()
+                filtered_event = filtered_events[event_index]
+
+                event = json.loads(events[event_index])
+                filtered_event['id'] = event['id']
+                filtered_event['weibo'] = [truth_weibo]
+            else:
+                filtered_event = filtered_events[event_index]
+                filtered_event['weibo'].append(truth_weibo)
+
+    # 文本过滤后，5979个事件变为了5469个事件
+    print('filtered_event_len = {}'.format(len(filtered_events)))
+
+    out = open('file/weibo_truth_filtered.json', 'w')
+    out_pretty = open('file/weibo_truth_filtered_pretty.json', 'w')
+    for i, e in filtered_events.items():
+        out.write('{}\n'.format(json.dumps(e, ensure_ascii=False)))
+        out_pretty.write('{}\n'.format(json.dumps(e, ensure_ascii=False, indent=4, separators=(',', ':'))))
+        out.flush()
+        out_pretty.flush()
+    out.close()
+    out_pretty.close()
+
+
+# rearrange_filtered_truth_by_event()
 
 
 # 得到每个事件的 微博数/总微博数
 def get_event_sampling_factor():
-    with open('../weibo_truth_analysis/file/weibo_truth.txt', 'r') as src:
+    with open('file/weibo_truth_filtered.json', 'r') as src:
         lines = src.readlines()
 
         events_num = len(lines)
@@ -23,6 +79,12 @@ def get_event_sampling_factor():
 
         for line in lines:
             event_dict = json.loads(line)
+
+            # TODO: check
+            # if len(event_dict) == 0:
+            #     event_weibos_num_list.append(0)
+            #     continue
+
             weibos = event_dict['weibo']
             weibos_num += len(weibos)
             event_weibos_num_list.append(len(weibos))
@@ -30,6 +92,7 @@ def get_event_sampling_factor():
         event_sampling_factor_list = [x / weibos_num for x in event_weibos_num_list]
 
     global_sampling_factor = rumor_weibo_sum / weibos_num
+    print('events_num = {}, weibos_num = {}'.format(events_num, weibos_num))
     joblib.dump((events_num, weibos_num, event_weibos_num_list, global_sampling_factor, event_sampling_factor_list),
                 'file/pkl/event_sampling_factor.pkl')
 
@@ -56,8 +119,9 @@ def get_event_certify_num(threshold=0.95):
             if rand >= threshold:
                 num = 1 if num == 0 else num
             updated_certify_num.append(num)
-
         certify_num_of_event.append(updated_certify_num)
+
+        certify_num_of_event.append(certify_num)
 
     # 更新在每个事件中抽取的微博数
     sampling_num_of_event = [sum(x) for x in certify_num_of_event]
@@ -67,10 +131,16 @@ def get_event_certify_num(threshold=0.95):
 
 def get_event_features():
     event_features_list = []
-    with open('../weibo_truth_analysis/file/weibo_truth.txt', 'r') as src:
+    with open('file/weibo_truth_filtered.json', 'r') as src:
         lines = src.readlines()
         for line in lines:
             event_dict = json.loads(line)
+
+            # TODO: 对于过滤后不存在的事件
+            # if len(event_dict) == 0:
+            #     event_features_list.append('')
+            #     continue
+
             weibos = event_dict['weibo']
 
             certify_0 = []
@@ -104,8 +174,3 @@ def get_event_features():
 
             event_features_list.append(event_features)
     joblib.dump(event_features_list, 'file/pkl/event_features.pkl')
-
-
-# get_event_sampling_factor()
-get_event_certify_num()
-# get_event_features()

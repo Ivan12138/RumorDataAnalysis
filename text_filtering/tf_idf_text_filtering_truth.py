@@ -236,7 +236,8 @@ def show_once_clustering_truth():
 
             out.write('{}\n'.format(json.dumps(truth_weibo, ensure_ascii=False)))
             out.flush()
-            out_pretty.write('{}\n'.format(json.dumps(truth_weibo, ensure_ascii=False, indent=4, separators=(',', ':'))))
+            out_pretty.write(
+                '{}\n'.format(json.dumps(truth_weibo, ensure_ascii=False, indent=4, separators=(',', ':'))))
             out_pretty.flush()
     out.close()
     out_pretty.close()
@@ -267,5 +268,4 @@ def show_once_clustering_truth():
             certify_0 + certify_1 + certify_2, certify_0, certify_1,
             certify_2, certify_0 / certify_1, certify_2 / certify_1))
 
-
-show_once_clustering_truth()
+# show_once_clustering_truth()

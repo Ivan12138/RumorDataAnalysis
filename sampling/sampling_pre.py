@@ -17,10 +17,6 @@ def rearrange_filtered_truth_by_event():
     with open('../weibo_truth_analysis/file/weibo_truth.txt', 'r') as src:
         events = src.readlines()
 
-    # TODO: 对 0 事件的处理
-    # filtered_events = []
-    # for i in range(len(events)):
-    #     filtered_events.append(dict())
     filtered_events = dict()  # key = index, value = event(dict)
 
     with open('../text_filtering/file/weibo_truth_once_text_filtered.json', 'r') as src:
@@ -79,12 +75,6 @@ def get_event_sampling_factor():
 
         for line in lines:
             event_dict = json.loads(line)
-
-            # TODO: check
-            # if len(event_dict) == 0:
-            #     event_weibos_num_list.append(0)
-            #     continue
-
             weibos = event_dict['weibo']
             weibos_num += len(weibos)
             event_weibos_num_list.append(len(weibos))
@@ -97,29 +87,39 @@ def get_event_sampling_factor():
                 'file/pkl/event_sampling_factor.pkl')
 
 
-def get_event_certify_num(threshold=0.95):
+def get_event_certify_num(threshold=0.75):
     events_num, weibos_num, event_weibos_num_list, global_sampling_factor, event_sampling_factor_list = joblib.load(
         'file/pkl/event_sampling_factor.pkl')
     # 计算在每个事件中抽取的微博数
-    sampling_num_of_event = [weibos_num * global_sampling_factor * factor for factor in event_sampling_factor_list]
-    sampling_num_of_event = [int(x + 0.5) for x in sampling_num_of_event]
-    sampling_num_of_event = [1 if x == 0 else x for x in sampling_num_of_event]
+    raw_sampling_num_of_event = [weibos_num * global_sampling_factor * factor for factor in event_sampling_factor_list]
+    raw_sampling_num_of_event = [int(x + 0.5) for x in raw_sampling_num_of_event]
+    # sampling_num_of_event = [1 if x == 0 else x for x in sampling_num_of_event]
+
+    # 以一定的机率更新sampling为0的事件（用来调节sampling的样本数）
+    sampling_num_of_event = []
+    for sampling_num in raw_sampling_num_of_event:
+        rand = random.random()
+        if rand > threshold:
+            sampling_num = 1 if sampling_num == 0 else sampling_num
+        sampling_num_of_event.append(sampling_num)
 
     # 计算不同的userCertify字段应该分别抽取多少微博
+    float_certify_num_of_event = [
+        [rumor_0 / rumor_certify * x, rumor_1 / rumor_certify * x, rumor_2 / rumor_certify * x]
+        for x in sampling_num_of_event]
     certify_num_of_event = []
-    for x in sampling_num_of_event:
-        certify_num = [rumor_0 / rumor_certify * x, rumor_1 / rumor_certify * x, rumor_2 / rumor_certify * x]
-        certify_num = [int(x + 0.5) for x in certify_num]
-        # certify_num = [1 if x == 0 else x for x in certify_num]
+    for index, float_certify_num in enumerate(float_certify_num_of_event):
+        # the last one
+        if index == len(float_certify_num_of_event) - 1:
+            certify_num_of_event.append([int(x + 1) for x in float_certify_num])
+            continue
 
-        # 按照一定的概率，将0更新为1
-        updated_certify_num = []
-        for num in certify_num:
-            rand = random.random()
-            if rand >= threshold:
-                num = 1 if num == 0 else num
-            updated_certify_num.append(num)
-        certify_num_of_event.append(updated_certify_num)
+        next_float_certify_num = float_certify_num_of_event[index + 1]
+
+        certify_num = [int(x) for x in float_certify_num]
+        next_float_certify_num[0] += float_certify_num[0] - certify_num[0]
+        next_float_certify_num[1] += float_certify_num[1] - certify_num[1]
+        next_float_certify_num[2] += float_certify_num[2] - certify_num[2]
 
         certify_num_of_event.append(certify_num)
 
@@ -128,6 +128,13 @@ def get_event_certify_num(threshold=0.95):
 
     joblib.dump((sampling_num_of_event, certify_num_of_event), 'file/pkl/certify_num_of_every_event.pkl')
 
+    # 打印sampling的结果
+    c0 = sum([x[0] for x in certify_num_of_event])
+    c1 = sum([x[1] for x in certify_num_of_event])
+    c2 = sum([x[2] for x in certify_num_of_event])
+    print('采样数：{}，userCertify的分布为：({}) {}:{}:{} = {:.1f} : {:.1f} : 1'.format(
+        sum(sampling_num_of_event), c0 + c1 + c2, c0, c1, c2, c0 / c2, c1 / c2))
+
 
 def get_event_features():
     event_features_list = []
@@ -135,12 +142,6 @@ def get_event_features():
         lines = src.readlines()
         for line in lines:
             event_dict = json.loads(line)
-
-            # TODO: 对于过滤后不存在的事件
-            # if len(event_dict) == 0:
-            #     event_features_list.append('')
-            #     continue
-
             weibos = event_dict['weibo']
 
             certify_0 = []

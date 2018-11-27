@@ -36,11 +36,6 @@ def get_result():
         certify_num = certify_num_of_event[sorted_index]  # 在本事件中需要抽取的userCertify字段分别为多少
         event_features = event_features_list[sorted_index]  # 事件的属性字典
 
-        # TODO: 如果过滤后的该事件不存在
-        # if event_features == '':
-        #     result_index_of_event[sorted_index] = ''
-        #     continue
-
         # The last one
         if i == len(sorted_index_of_event) - 1:
             if certify_num[0] < len(event_features['certify_0']):
@@ -129,10 +124,6 @@ def get_weibo_truth_sampling_file():
         lines = src.readlines()
         for index, line in enumerate(lines):
             event_dict = json.loads(line)
-
-            # TODO: 如果过滤后的该事件不存在
-            # if len(event_dict) == 0:
-            #     continue
 
             result_index = [i for result in result_index_of_event[index] for i in result]
             raw_weibos = event_dict['weibo']

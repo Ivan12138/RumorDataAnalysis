@@ -4,15 +4,14 @@ import cv2
 import numpy as np
 from sklearn.externals import joblib
 from scipy.cluster.vq import *
+import time
 
 from sklearn import preprocessing
 
 
 # 词袋模型：导入图片，最终生成单词本
-def get_words_dict_from_img(image_paths, pkl_path, num_words=1000):
-    # image_paths: list.
-    # pkl_path: the file of being stored pkl, just like 'words_dict.pkl'
-    # num_words: K-means Param. Default 1000.
+def get_descriptors_list(category, image_paths):
+    start_time = time.time()
 
     # Create feature extraction and key points detector objects
     sift = cv2.xfeatures2d.SIFT_create()
@@ -20,20 +19,75 @@ def get_words_dict_from_img(image_paths, pkl_path, num_words=1000):
     # List where all the descriptors are stored
     des_list = []
 
+    removed_num = 0
     for i, image_path in enumerate(image_paths):
         im = cv2.imread(image_path)
-        print("Extract SIFT %d of %d images" % (i, len(image_paths)))
-        kpts, des = sift.detectAndCompute(im, None)
-        des_list.append((image_path, des))
+        if im is None:
+            image_paths.remove(image_path)
+            removed_num += 1
+            print('Remove the {}th pics'.format(i))
+            continue
+        _, des = sift.detectAndCompute(im, None)
+        if des is None:
+            des_list.append((image_path, des))
+
+        if i % 50 == 0:
+            print("Extract SIFT {} of {} images, it took {:.1f}s".format(i, len(image_paths), time.time() - start_time))
+
+    # 存储des_list
+    joblib.dump((des_list, image_paths), 'pkl/des_list_{}.pkl'.format(category))
+
+    print('--------------------------------')
+    print('[{:.1f}s] The len of image_paths is {}, removed {} imgs.'.format(
+        time.time() - start_time, len(image_paths), removed_num))
+    print('--------------------------------')
+
+
+def get_im_features(category, pkl_path, num_words=1000):
+    global_start_time = time.time()
+
+    des_list, image_paths = joblib.load('pkl/des_list_{}.pkl'.format(category))
+
+    # TODO: 在修改完上面的代码以后，删除image_paths参数的获取
+    for image_path, descriptor in des_list:
+        if descriptor is None:
+            des_list.remove((image_path, descriptor))
+    image_paths = [x[0] for x in des_list]
 
     # Stack all the descriptors vertically in a numpy array
-    descriptors = des_list[0][1]
-    for image_path, descriptor in des_list[1:]:
-        descriptors = np.vstack((descriptors, descriptor))
+    print('-----------------------------------------')
+    print('Start stacking of the descriptors......')
+
+    # 方法1，np.vstack
+    # i = 0
+    # start_time = time.time()
+    # descriptors = des_list[0][1]
+    # for image_path, descriptor in des_list[1:]:
+    #     descriptors = np.vstack((descriptors, descriptor))
+    #     i += 1
+    #     if i % 100 == 0:
+    #         print('[{:.1f}s] The {}/{} descriptors has been stacked.'.format(
+    # time.time() - start_time, i, len(des_list)))
+    #         start_time = time.time()
+
+    # 方法2，显著提升性能
+    des_sum = 0
+    for image_path, descriptor in des_list:
+        des_sum += descriptor.shape[0]
+    descriptors = np.zeros((des_sum, 128))
+
+    position = 0
+    for image_path, descriptor in des_list:
+        sz = len(descriptor)
+        descriptors[position:position + sz] = descriptor
+        position += sz
 
     # Perform k-means clustering
-    print("Start k-means: %d words, %d key points" % (num_words, descriptors.shape[0]))
+    start_time = time.time()
+    print('-----------------------------------------')
+    print("Start k-means: %d words, %d key points..." % (num_words, descriptors.shape[0]))
     voc, variance = kmeans(descriptors, num_words, 1)
+    print('[{:.1f}s] K-means has done.'.format(time.time() - start_time))
 
     # Calculate the histogram of features
     im_features = np.zeros((len(image_paths), num_words), "float32")
@@ -50,4 +104,9 @@ def get_words_dict_from_img(image_paths, pkl_path, num_words=1000):
     im_features = im_features * idf
     im_features = preprocessing.normalize(im_features, norm='l2')
 
+    print('-----------------------------------------')
+    print('正在保存模型参数...')
     joblib.dump((im_features, image_paths, idf, num_words, voc), pkl_path, compress=3)
+
+
+get_im_features('rumor', 'pkl/rumor_im_features.pkl')

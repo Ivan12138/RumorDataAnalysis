@@ -154,9 +154,15 @@ def show_clustering_rumor():
         certify_1 = 0
         certify_2 = 0
 
+        num_of_has_pics_rumor = 0
+
         for line in lines:
             rumor = json.loads(line, encoding='utf-8-sig')
             filtered_pic_num += len(rumor['reportedWeibo']['piclists'])
+
+            if len(rumor['reportedWeibo']['piclists']) != 0:
+                num_of_has_pics_rumor += 1
+
             if 'userCertify' in rumor.keys():
                 certify = rumor['userCertify']
                 if certify == 0:
@@ -170,6 +176,8 @@ def show_clustering_rumor():
         print('（{}）{}:{}:{} = {:.1f} : {:.1f} : 1'.format(
             certify_0 + certify_1 + certify_2, certify_0, certify_1,
             certify_2, certify_0 / certify_2, certify_1 / certify_2))
+        print()
+        print('有图片的微博数为：' + str(num_of_has_pics_rumor))
 
 
-
+show_clustering_rumor()

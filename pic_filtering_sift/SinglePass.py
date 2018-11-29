@@ -177,7 +177,16 @@ def cosine_similarity(vec_a, vec_b):
     return pw.cosine_similarity(array)[0][1]
 
 
-# Rumor Single-Pass
-im_features, image_paths, idf, num_words, voc = joblib.load('pkl/rumor_im_features.pkl')
-single_pass_cluster = SinglePassCluster(im_features, 0.9)
-joblib.dump(single_pass_cluster, 'pkl/rumor_spc.pkl')
+# Rumor_10773 Single-Pass
+def rumor_10773():
+    im_features, image_paths, idf, num_words, voc = joblib.load('pkl/rumor_im_features.pkl')
+    single_pass_cluster = SinglePassCluster(im_features, 0.9)
+    joblib.dump(single_pass_cluster, 'pkl/rumor_spc_10773.pkl')
+
+
+def rumor_all():
+    print('==============================================================')
+    print('开始进行 SinglePass 聚类......')
+    im_features, image_paths, idf, num_words, voc = joblib.load('pkl/rumor_all_im_features.pkl')
+    single_pass_cluster = SinglePassCluster(im_features, 0.9)
+    joblib.dump(single_pass_cluster, 'pkl/rumor_spc_all.pkl')

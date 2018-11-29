@@ -7,8 +7,8 @@ import BoW
 
 rumor_src_file = '../text_filtering/file/weibo_rumor_text_filtered.json'
 truth_src_file = '../sampling/file/weibo_truth_sampling.json'
-rumor_out_file = 'file/rumor_pics.txt'
-truth_out_file = 'file/truth_pics.txt'
+rumor_out_file = 'file/pics_rumor.txt'
+truth_out_file = 'file/pics_truth.txt'
 
 
 def get_pics_file():
@@ -81,6 +81,3 @@ def get_descriptors():
         lines = src.readlines()
     image_paths = ['../../sampling_img_truth/' + line.strip('\n') for line in lines]
     BoW.get_descriptors_list('truth', image_paths)
-
-
-get_descriptors()

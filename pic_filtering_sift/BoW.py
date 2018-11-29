@@ -12,6 +12,8 @@ from sklearn import preprocessing
 # 词袋模型：导入图片，最终生成单词本
 def get_descriptors_list(category, image_paths):
     start_time = time.time()
+    print('==============================================================')
+    print('Extracting SIFT of {} imgs......'.format(len(image_paths)))
 
     # Create feature extraction and key points detector objects
     sift = cv2.xfeatures2d.SIFT_create()
@@ -35,11 +37,11 @@ def get_descriptors_list(category, image_paths):
             print("Extract SIFT {} of {} images, it took {:.1f}s".format(i, len(image_paths), time.time() - start_time))
             start_time = time.time()
 
-    # 存储des_list
+    # TODO: 存储des_list，有可能很大
     joblib.dump((des_list, image_paths), 'pkl/des_list_{}.pkl'.format(category))
 
     print('--------------------------------')
-    print('[{:.1f}s] The len of image_paths is {}, removed {} imgs.'.format(
+    print('[{:.1f}s] Has Extracted All imgs! The len of image_paths is {}, removed {} imgs.'.format(
         time.time() - start_time, len(image_paths), removed_num))
     print('--------------------------------')
 

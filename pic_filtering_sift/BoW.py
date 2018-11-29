@@ -23,16 +23,17 @@ def get_descriptors_list(category, image_paths):
     for i, image_path in enumerate(image_paths):
         im = cv2.imread(image_path)
         if im is None:
-            image_paths.remove(image_path)
+            # image_paths.remove(image_path)
             removed_num += 1
             print('Remove the {}th pics'.format(i))
             continue
         _, des = sift.detectAndCompute(im, None)
-        if des is None:
+        if des is not None:
             des_list.append((image_path, des))
 
         if i % 50 == 0:
             print("Extract SIFT {} of {} images, it took {:.1f}s".format(i, len(image_paths), time.time() - start_time))
+            start_time = time.time()
 
     # 存储des_list
     joblib.dump((des_list, image_paths), 'pkl/des_list_{}.pkl'.format(category))
@@ -44,14 +45,13 @@ def get_descriptors_list(category, image_paths):
 
 
 def get_im_features(category, pkl_path, num_words=1000):
-    global_start_time = time.time()
+    des_list, _ = joblib.load('pkl/des_list_{}.pkl'.format(category))
 
-    des_list, image_paths = joblib.load('pkl/des_list_{}.pkl'.format(category))
+    # 在修改完上面的代码以后，就不用去除 descriptor空值
+    # for image_path, descriptor in des_list:
+    #     if descriptor is None:
+    #         des_list.remove((image_path, descriptor))
 
-    # TODO: 在修改完上面的代码以后，删除image_paths参数的获取
-    for image_path, descriptor in des_list:
-        if descriptor is None:
-            des_list.remove((image_path, descriptor))
     image_paths = [x[0] for x in des_list]
 
     # Stack all the descriptors vertically in a numpy array
@@ -108,5 +108,4 @@ def get_im_features(category, pkl_path, num_words=1000):
     print('正在保存模型参数...')
     joblib.dump((im_features, image_paths, idf, num_words, voc), pkl_path, compress=3)
 
-
-get_im_features('rumor', 'pkl/rumor_im_features.pkl')
+# get_im_features('rumor', 'pkl/rumor_im_features.pkl')

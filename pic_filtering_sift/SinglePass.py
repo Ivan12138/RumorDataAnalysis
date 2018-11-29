@@ -3,6 +3,8 @@
 import numpy as np
 import time
 import math
+from sklearn.externals import joblib
+import sklearn.metrics.pairwise as pw
 
 
 class ClusterUnit:
@@ -95,6 +97,7 @@ class SinglePassCluster:
         self.cluster_list.append(ClusterUnit())  # 初始新建一个簇
         self.cluster_list[0].add_node(0, self.vectors[0])  # 将读入的第一个节点归于该簇
         # TODO: Check
+        start_time = time.time()
         for index in range(1, len(self.vectors)):
             max_similarity = cosine_similarity(vec_a=self.vectors[index],
                                                vec_b=self.cluster_list[0].centroid)  # 与簇的质心的最大相似度
@@ -114,6 +117,13 @@ class SinglePassCluster:
                 self.cluster_list.append(new_cluster)
                 del new_cluster
 
+            # print process
+            if index % 50 == 0:
+                print('[{}] 第 {}/{} 个vector 处理成功，耗时{:.1f}s，目前共有{}个簇...'.format(
+                    time.strftime('%Y-%m-%d %H:%M:%S', time.localtime()), index, len(self.vectors),
+                    time.time() - start_time, len(self.cluster_list)))
+                start_time = time.time()
+
 
 def e_distance(vec_a, vec_b):
     """
@@ -127,8 +137,47 @@ def e_distance(vec_a, vec_b):
     # return np.sqrt(np.sum(np.square(vec_a - vec_b)))
 
 
-def cosine_similarity(vec_a, vec_b):
-    # dim = vec_a.shape[0]
-    # vec_a = preprocessing.normalize(vec_a.reshape(1, dim), norm='l2')
-    # vec_b = preprocessing.normalize(vec_b, norm='l2')
+# 余弦相似度
+def cosine_similarity_raw(vec_a, vec_b):
+    len_a = 0
+    for x in vec_a:
+        len_a += x ** 2
+    len_a = np.sqrt(len_a)
+
+    len_b = 0
+    for x in vec_b:
+        len_b += x ** 2
+    len_b = np.sqrt(len_b)
+
+    multi = 0
+    for i in range(len(vec_a)):
+        multi += vec_a[i] * vec_b[i]
+
+    return float(multi / (len_a * len_b))
+
+
+def cosine_similarity_np(vec_a, vec_b):
     return vec_a.dot(vec_b) / (np.linalg.norm(vec_a) * np.linalg.norm(vec_b))
+
+
+def dot_product(v1, v2):
+    return sum(a * b for a, b in zip(v1, v2))
+
+
+def magnitude(vector):
+    return math.sqrt(dot_product(vector, vector))
+
+
+def cosine_similarity_math(vec_a, vec_b):
+    return dot_product(vec_a, vec_b) / (magnitude(vec_a) * magnitude(vec_b) + .00000000001)
+
+
+def cosine_similarity(vec_a, vec_b):
+    array = np.array((vec_a, vec_b))
+    return pw.cosine_similarity(array)[0][1]
+
+
+# Rumor Single-Pass
+im_features, image_paths, idf, num_words, voc = joblib.load('pkl/rumor_im_features.pkl')
+single_pass_cluster = SinglePassCluster(im_features, 0.9)
+joblib.dump(single_pass_cluster, 'pkl/rumor_spc.pkl')

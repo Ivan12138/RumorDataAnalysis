@@ -26,6 +26,8 @@ db.getCollection('judgeWeibo').find()
 
 ls img_rumor -lR |grep "^-"|wc -l
 
+ps -aux|grep python3.5
+
 ==================================== To Do ====================================
 
 1. 图片去重

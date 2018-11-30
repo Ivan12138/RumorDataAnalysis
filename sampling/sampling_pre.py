@@ -123,9 +123,9 @@ def get_event_certify_num(threshold=0.75):
         sum(sampling_num_of_event), c0 + c1 + c2, c0, c1, c2, c0 / c2, c1 / c2))
 
 
-def get_event_features():
+def get_event_features(src_file, pkl_file):
     event_features_list = []
-    with open('file/weibo_truth_filtered.json', 'r') as src:
+    with open(src_file, 'r') as src:
         lines = src.readlines()
         for line in lines:
             event_dict = json.loads(line)
@@ -135,6 +135,7 @@ def get_event_features():
             certify_1 = []
             certify_2 = []
             pic_num = []
+            pic_name = []
             for index, weibo in enumerate(weibos):
                 certify = weibo['userCertify']
                 if certify == 0:
@@ -146,6 +147,8 @@ def get_event_features():
 
                 if 'piclist' in weibo.keys() and isinstance(weibo['piclist'], list):
                     pic_num.append(len(weibo['piclist']))
+                    names = [name.split('/')[-1] for name in weibo['piclist']]
+                    pic_name += names
                 else:
                     pic_num.append(0)
 
@@ -159,6 +162,10 @@ def get_event_features():
             event_features['pic_num_1'] = [pic_num[x] for x in certify_1]
             event_features['pic_num_2'] = [pic_num[x] for x in certify_2]
             event_features['pic_num'] = pic_num
+            event_features['pic_sum'] = sum(pic_num)
+            event_features['pic_name'] = pic_name
 
             event_features_list.append(event_features)
-    joblib.dump(event_features_list, 'file/pkl/event_features.pkl')
+    joblib.dump(event_features_list, pkl_file)
+
+get_event_features('../weibo_truth_analysis/file/weibo_truth.txt', 'file/pkl/event_features_all.pkl')

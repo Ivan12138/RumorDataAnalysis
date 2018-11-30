@@ -78,8 +78,8 @@ def get_im_features_of_rumor_all():
 
 
 # get_des_list_of_rumor_all()
-get_im_features_of_rumor_all()
-SinglePass.rumor_all()
+# get_im_features_of_rumor_all()
+# SinglePass.rumor_all()
 
 
 # TODO：随机选取聚类后，每一簇的图片
@@ -101,4 +101,7 @@ def choose_pics_of_cluster():
         if code == 0:
             valid_pics_num += 1
 
-    print('共有{}个簇，{}张图片复制成功'.format(len(single_pass_cluster.cluster_list, valid_pics_num)))
+    print('共有{}个簇，{}张图片复制成功'.format(len(single_pass_cluster.cluster_list), valid_pics_num))
+
+
+choose_pics_of_cluster()

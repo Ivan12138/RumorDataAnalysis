@@ -123,7 +123,7 @@ def gen_filtered_rumor():
                 chosen_rumor = rumor_cluster[chosen_rumor_index]
                 out.write('{}\n'.format(json.dumps(chosen_rumor, ensure_ascii=False)))
                 out_pretty.write(
-                    '{}\n'.format(json.dumps(chosen_rumor, ensure_ascii=False, indent=4, separators=(':', ','))))
+                    '{}\n'.format(json.dumps(chosen_rumor, ensure_ascii=False, indent=4, separators=(',', ':'))))
                 out.flush()
                 out_pretty.flush()
 
@@ -180,4 +180,5 @@ def show_clustering_rumor():
         print('有图片的微博数为：' + str(num_of_has_pics_rumor))
 
 
-show_clustering_rumor()
+# show_clustering_rumor()
+gen_filtered_rumor()

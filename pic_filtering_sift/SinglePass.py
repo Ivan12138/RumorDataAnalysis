@@ -134,7 +134,7 @@ def e_distance(vec_a, vec_b):
     """
     diff = vec_a - vec_b
     return math.sqrt(np.dot(diff, diff))
-    # return np.sqrt(np.sum(np.square(vec_a - vec_b)))
+    # return np.sqrt(np.num(np.square(vec_a - vec_b)))
 
 
 # 余弦相似度

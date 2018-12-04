@@ -12,8 +12,8 @@ import random
 import BoW
 import SinglePass
 
-rumor_pics_dir = '../../raw_img_rumor'
-rumor_pics_all_file = 'file/pics_rumor_all.txt'
+rumor_pics_dir = '../../pics_filtered_img_rumor_todo'
+rumor_pics_all_file = 'file/pics_rumor_all_todo.txt'
 
 
 def gen_pics_rumor_all_file():
@@ -29,14 +29,14 @@ def get_des_list_of_rumor_all():
     with open(rumor_pics_all_file, 'r') as src:
         lines = src.readlines()
     image_paths = [rumor_pics_dir + '/' + line.strip('\n') for line in lines]
-    BoW.get_descriptors_list('rumor_all', image_paths)
+    BoW.get_descriptors_list('rumor_all_todo', image_paths)
 
 
-def get_im_features_of_rumor_all():
+def get_im_features_of_rumor_all_todo(num_words=500):
     print('==============================================================')
     print('正在计算im_features......')
 
-    des_list, _ = joblib.load('pkl/des_list_{}.pkl'.format('rumor_all'))
+    des_list, _ = joblib.load('pkl/des_list_{}.pkl'.format('rumor_all_todo'))
     image_paths = [x[0] for x in des_list]
 
     # Stack all the descriptors vertically in a numpy array
@@ -54,8 +54,15 @@ def get_im_features_of_rumor_all():
         descriptors[position:position + sz] = descriptor
         position += sz
 
-    # TODO: 获取rumor_10773的聚类结果
-    _, _, _, num_words, voc = joblib.load('pkl/rumor_im_features.pkl')
+    # 获取rumor_10773的聚类结果
+    # _, _, _, num_words, voc = joblib.load('pkl/rumor_im_features.pkl')
+
+    # Perform k-means clustering
+    start_time = time.time()
+    print('-----------------------------------------')
+    print("Start k-means: %d words, %d key points..." % (num_words, descriptors.shape[0]))
+    voc, variance = kmeans(descriptors, num_words, 1)
+    print('[{:.1f}s] K-means has done.'.format(time.time() - start_time))
 
     # Calculate the histogram of features
     im_features = np.zeros((len(image_paths), num_words), "float32")
@@ -74,27 +81,30 @@ def get_im_features_of_rumor_all():
 
     print('-----------------------------------------')
     print('正在保存模型参数...')
-    joblib.dump((im_features, image_paths, idf, num_words, voc), 'pkl/rumor_all_im_features.pkl', compress=3)
+    joblib.dump((im_features, image_paths, idf, num_words, voc), 'pkl/rumor_all_todo_im_features.pkl', compress=3)
 
 
-# get_des_list_of_rumor_all()
-# get_im_features_of_rumor_all()
-# SinglePass.rumor_all()
+gen_pics_rumor_all_file()
+get_des_list_of_rumor_all()
+get_im_features_of_rumor_all_todo()
+
+# TODO: SinglePass
+# SinglePass.rumor_all_todo()
 
 
-# TODO：随机选取聚类后，每一簇的图片
+# TODO: 随机选取聚类后，每一簇的图片
 def choose_pics_of_cluster():
     out_dir = '../../pics_filtered_img_rumor'
 
-    single_pass_cluster = joblib.load('pkl/rumor_spc_all.pkl')
-    _, image_paths, _, _, _ = joblib.load('pkl/rumor_all_im_features.pkl')
+    single_pass_cluster = joblib.load('pkl/rumor_spc_all_todo.pkl')
+    _, image_paths, _, _, _ = joblib.load('pkl/rumor_all_todo_im_features.pkl')
 
     chosen_imgs = []
     for cluster in single_pass_cluster.cluster_list:
         chosen_index = random.sample(cluster.node_list, 1)[0]
         chosen_imgs.append(image_paths[chosen_index])
 
-    # TODO: cp, 注意检查image_paths的图片名
+    # cp, 注意检查image_paths的图片名
     valid_pics_num = 0
     for img in chosen_imgs:
         code = os.system('cp {} {}'.format(img, out_dir))
@@ -102,6 +112,3 @@ def choose_pics_of_cluster():
             valid_pics_num += 1
 
     print('共有{}个簇，{}张图片复制成功'.format(len(single_pass_cluster.cluster_list), valid_pics_num))
-
-
-choose_pics_of_cluster()

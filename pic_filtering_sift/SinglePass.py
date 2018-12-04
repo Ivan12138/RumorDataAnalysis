@@ -184,9 +184,9 @@ def rumor_10773():
     joblib.dump(single_pass_cluster, 'pkl/rumor_spc_10773.pkl')
 
 
-def rumor_all():
+def rumor_all_todo():
     print('==============================================================')
     print('开始进行 SinglePass 聚类......')
-    im_features, image_paths, idf, num_words, voc = joblib.load('pkl/rumor_all_im_features.pkl')
+    im_features, image_paths, idf, num_words, voc = joblib.load('pkl/rumor_all_todo_im_features.pkl')
     single_pass_cluster = SinglePassCluster(im_features, 0.9)
-    joblib.dump(single_pass_cluster, 'pkl/rumor_spc_all.pkl')
+    joblib.dump(single_pass_cluster, 'pkl/rumor_spc_all_todo.pkl')

@@ -25,7 +25,6 @@ def get_descriptors_list(category, image_paths):
     for i, image_path in enumerate(image_paths):
         im = cv2.imread(image_path)
         if im is None:
-            # image_paths.remove(image_path)
             removed_num += 1
             print('Remove the {}th pics'.format(i))
             continue

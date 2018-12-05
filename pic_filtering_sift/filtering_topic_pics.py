@@ -5,8 +5,8 @@ import os
 import time
 
 root_dir = '../../'
-rumor_all_dir = 'pics_filtered_img_rumor'
-truth_sampling_dir = 'pics_sampling_img_truth'
+rumor_all_dir = 'pics_filtered_img_rumor_todo'
+truth_sampling_dir = 'pics_sampling_img_truth_todo'
 rumor_text_filtered_dir = 'text_filtered_img_rumor'
 truth_text_filtered_dir = 'text_filtered_img_truth'
 
@@ -45,7 +45,17 @@ def del_topic_pics(category_no):
             os.system('mv {} {}'.format(file, root_dir + 'topic_' + dirs_4_category[category_no]))
             num += 1
 
-        if index % 100 == 0:
+        if shape[0] == 160 and shape[1] == 160:
+            # 执行move命令
+            os.system('mv {} {}'.format(file, root_dir + 'topic_' + dirs_4_category[category_no]))
+            num += 1
+
+        if shape[0] == 200 and shape[1] == 200:
+            # 执行move命令
+            os.system('mv {} {}'.format(file, root_dir + 'topic_' + dirs_4_category[category_no]))
+            num += 1
+
+        if index % 200 == 0:
             print('[{}] 已处理{}/{}张图片，其中共有{}张topic图片，{}张无效图片...'.format(
                 time.strftime('%H:%M:%S', time.localtime()), index + 1,
                 len(files_4_category[category_no]), num, err_num
@@ -54,5 +64,11 @@ def del_topic_pics(category_no):
     print('{}处理完成，共有{}张topic图片，{}张无效图片.'.format(dirs_4_category[category_no], num, err_num))
 
 
-for i in range(1, 4):
+# 处理200*200的图片
+for i in range(4):
     del_topic_pics(i)
+
+
+def recover_some_pics():
+    pics = ['4de3cfd3jw1e3z61ria75j204g04g745', '5f8f0430tw1e12oz3wd8dj']
+    pass

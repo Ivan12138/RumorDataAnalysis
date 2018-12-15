@@ -2,30 +2,13 @@
 
 import json
 
-file = 'file/rumor_weibo_updated.json'
+src_file = 'file/rumor_weibo_updated.json'
+out_file = 'file/rumor_weibo_updated_pretty.json'
 
-reportTime = []
-with open(file, 'r') as src:
-    lines = src.readlines()
-    for line in lines:
-        rumor = json.loads(line, encoding='utf-8')
-        if rumor['reportTime'] != '':
-            reportTime.append(rumor['reportTime'])
-
-sz = len(reportTime)
-
-# print(reportTime[:10])
-# print(reportTime[sz-10:])
-# print('-----------------------------------------')
-
-reportTime.sort()
-print(reportTime[:10])
-print(reportTime[sz - 10:])
-print()
-
-with open(file, 'r') as src:
-    lines = src.readlines()
-    for line in lines:
-        rumor = json.loads(line, encoding='utf-8')
-        if rumor['reportTime'] == reportTime[-1]:
-            print(rumor)
+with open(src_file, 'r') as src:
+    with open(out_file, 'w') as out:
+        lines = src.readlines()
+        for line in lines:
+            js = json.loads(line, encoding='utf-8')
+            out.write('{}\n'.format(
+                json.dumps(js, ensure_ascii=False, indent=4, separators=(',', ':'))))

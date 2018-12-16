@@ -30,9 +30,10 @@ class ClusterUnit:
 
 
 class SinglePassCluster:
-    def __init__(self, pic_index_list, threshold=0.75):
+    def __init__(self, pic_index_list, matrix, threshold=0.75):
         self.threshold = threshold  # 一趟聚类的阀值
         self.vectors = pic_index_list
+        self.matrix = matrix
 
         self.cluster_list = []  # 聚类后簇的列表
         t1 = time.time()
@@ -51,7 +52,8 @@ class SinglePassCluster:
         for index in range(1, len(self.vectors)):
             # max_distance = similarity_distance(self.vectors[index],
             #                                    self.vectors[self.cluster_list[0].centroid])
-            max_distance = similarity_distance(index, self.cluster_list[0].centroid)
+            max_distance = similarity_distance(
+                index, self.cluster_list[0].centroid, self.matrix)
             max_cluster_index = 0  # 最大相似距离的簇的索引
 
             start_time = time.time()
@@ -59,7 +61,8 @@ class SinglePassCluster:
                 # 寻找相似距离最大的簇，记录下距离和对应的簇的索引
                 # distance = similarity_distance(self.vectors[index],
                 #                                self.vectors[cluster.centroid])
-                distance = similarity_distance(index, cluster.centroid)
+                distance = similarity_distance(
+                    index, cluster.centroid, self.matrix)
 
                 if distance > max_distance:
                     max_distance = distance
@@ -82,16 +85,7 @@ class SinglePassCluster:
                 start_time = time.time()
 
 
-# 计算两张图片的 pHash 距离
-def similarity_distance_by_file(file1, file2):
-    p_hash1 = imagehash.phash(Image.open(file1))
-    p_hash2 = imagehash.phash(Image.open(file2))
-
-    similarity = 1 - (p_hash1 - p_hash2) / len(p_hash1.hash) ** 2
-    return similarity
-
-
-def similarity_distance(i, j):
+def similarity_distance(i, j, matrix):
     if i == j:
         return 1
     elif i > j:
@@ -101,23 +95,11 @@ def similarity_distance(i, j):
     return matrix[i][j]
 
 
-rumor_pics_dir = '../../pics_filtered_img_rumor_todo'
-pics_txt = '../pic_filtering_sift/file/pics_rumor_all_todo.txt'
-
-with open(pics_txt, 'r') as src:
-    lines = src.readlines()
-image_paths = [rumor_pics_dir + '/' + line.strip('\n') for line in lines]
-sz = len(image_paths)
-
-
-# matrix = joblib.load('pkl/matrix.pkl')
-
-
-def main():
+def main(sz, matrix, threshold):
     # Main
     print('====================================')
-    print('开始聚类......')
+    print('开始聚类，阈值为{}......'.format(threshold))
     print()
 
-    spc = SinglePassCluster([i for i in range(sz)], threshold=0.85)
-    joblib.dump(spc, 'pkl/phash_spc.pkl')
+    spc = SinglePassCluster([i for i in range(sz)], matrix, threshold=threshold)
+    joblib.dump(spc, 'pkl/phash_spc_{}_ts{}.pkl'.format(sz, threshold))

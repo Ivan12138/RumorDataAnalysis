@@ -46,34 +46,6 @@ def get_similarity_matrix(sz):
     joblib.dump(matrix, 'pkl/matrix_{}.pkl'.format(sz))
 
 
-def mv_on_server():
-    spc = joblib.load('pkl/phash_spc.pkl')
-    clusters = spc.cluster_list
-    n_list = [c.node_list for c in clusters]
-
-    print('clusters_size = {}, img_sz = {}'.format(len(clusters), sz))
-
-    # 移除簇内大于10张的图片
-    sz_of_n_list = [len(x) for x in n_list]
-    chosen_index = []
-    for s in sz_of_n_list:
-        if s > 10:
-            chosen_index.append(sz_of_n_list.index(s))
-
-    # 执行mv命令
-    valid_num = 0
-    for i, c in enumerate(chosen_index):
-        # 随机留一张在原文件夹中，其余的mv
-        nodes = random.sample(n_list[c], sz_of_n_list[c] - 1)
-        for node in nodes:
-            img = image_paths[node]
-            code = os.system('mv {} {}'.format(
-                img, '../../pics_filtered_img_rumor_filtered/' + str(i) + '-' + img.split('/')[-1]))
-            if code == 0:
-                valid_num += 1
-    print('mv successfully! Valid_num = {}'.format(valid_num))
-
-
 # 先撤回mv
 def recover():
     src_dir = '../../pics_filtered_img_rumor_filtered'

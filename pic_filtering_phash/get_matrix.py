@@ -9,16 +9,27 @@ import os
 
 
 def get_phash_table(image_paths, sz):
+    out = open('file/log_phash_{}.txt'.format(sz), 'w')
+
     phash_list = []
+    valid_image_paths = []
 
     start_time = time.time()
     for i in range(sz):
-        phash_list.append(imagehash.phash(Image.open(image_paths[i])))
+        try:
+            phash_list.append(imagehash.phash(Image.open(image_paths[i])))
+            valid_image_paths.append(image_paths[i])
+        except OSError:
+            out.write(image_paths[i] + '\n')
+            out.flush()
+
         if i % 50 == 0:
             print('Img {}/{} Done. It took {:.1f}s...'.format(i + 1, sz, time.time() - start_time))
             start_time = time.time()
 
-    joblib.dump(phash_list, 'pkl/phash_list_{}.pkl'.format(sz))
+    joblib.dump(valid_image_paths, phash_list, 'pkl/phash_list_{}.pkl'.format(sz))
+
+    out.close()
 
 
 def similarity_distance(p_hash1, p_hash2):

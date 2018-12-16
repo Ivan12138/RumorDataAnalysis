@@ -6,31 +6,44 @@ from sklearn.externals import joblib
 import os
 import time
 
+# =================================================================
+
+# 说明：
+# 对truth_pics_sampling(28779)与pics_filtered_img_rumor(17494)进行去重
+
 # ============================= 初始化 =============================
 
 # 需要去重的图片文件夹
-rumor_pics_dir = '../../pics_filtered_img_rumor'
+pics_dir = '../../truth_pics_sampling'
 # 文件夹中的所有图片名
-rumor_pics_name_file = 'file/rumor_pics_name.txt'
+pics_name_file = 'file/truth_pics_name.txt'
 
-with open(rumor_pics_name_file, 'r') as src:
+with open(pics_name_file, 'w') as out:
+    for _, _, files in os.walk(pics_dir):
+        for file in files:
+            out.write('{}\n'.format(os.path.join(pics_dir, file)))
+
+with open(pics_name_file, 'r') as src:
     lines = src.readlines()
-image_paths = [os.path.join(rumor_pics_dir, line.strip('\n').split('/')[-1]) for line in lines]
+image_paths = [os.path.join(pics_dir, line.strip('\n').split('/')[-1]) for line in lines]
 sz = len(image_paths)
-print('正在对{}中的图片去重，其中共有{}张图片'.format(rumor_pics_dir.split('/')[-1], sz))
-
+print('正在对{}中的图片去重，其中共有{}张图片'.format(pics_dir.split('/')[-1], sz))
 
 # ============================= 计算矩阵 =============================
 
 # 计算所有图片的phash值
-# get_matrix.get_phash_table(image_paths, sz)
+get_matrix.get_phash_table(image_paths, sz)
 
 # 根据phash值，计算图片的相似度矩阵
-# get_matrix.get_similarity_matrix(sz)
+# TODO: 更新image_paths与phash_list（有的图片打不开）
+image_paths, phash_list = joblib.load('pkl/phash_list_{}.pkl'.format(sz))
+sz = len(phash_list)
+get_matrix.get_similarity_matrix(sz)
+
 
 # ============================= Single Pass 聚类 =============================
 
-# matrix = joblib.load('pkl/matrix_17494.pkl')
+# matrix = joblib.load('pkl/matrix_{}.pkl'.format(sz))
 # clustering_by_matrix.main(sz, matrix, threshold=0.7)
 
 # ============================= 展示聚类效果 =============================
@@ -63,7 +76,6 @@ def show_clustering_pics_dir(threshold):
 
     print('cp successfully! Valid_num = {}'.format(valid_num))
 
-
 # show_clustering_pics_dir(threshold=0.75)
 # show_clustering_pics_dir(threshold=0.8)
-show_clustering_pics_dir(threshold=0.85)
+# show_clustering_pics_dir(threshold=0.85)

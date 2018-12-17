@@ -5,6 +5,8 @@ import clustering_by_matrix
 from sklearn.externals import joblib
 import os
 import time
+import random
+
 
 # =================================================================
 
@@ -32,26 +34,27 @@ print('正在对{}中的图片去重，其中共有{}张图片'.format(pics_dir.
 # ============================= 计算矩阵 =============================
 
 # 计算所有图片的phash值
-get_matrix.get_phash_table(image_paths, sz)
+# get_matrix.get_phash_table(image_paths, sz)
 
 # 根据phash值，计算图片的相似度矩阵
-# TODO: 更新image_paths与phash_list（有的图片打不开）
+sz = 28776
 image_paths, phash_list = joblib.load('pkl/phash_list_{}.pkl'.format(sz))
-sz = len(phash_list)
-get_matrix.get_similarity_matrix(sz)
+print('img_sz = {}, phash_list_sz = {}'.format(len(image_paths), len(phash_list)))
+# sz = len(phash_list)
+# get_matrix.get_similarity_matrix(sz)
 
 
 # ============================= Single Pass 聚类 =============================
 
 # matrix = joblib.load('pkl/matrix_{}.pkl'.format(sz))
-# clustering_by_matrix.main(sz, matrix, threshold=0.7)
+# clustering_by_matrix.main(sz, matrix, threshold=0.85)
 
 # ============================= 展示聚类效果 =============================
 
 def show_clustering_pics_dir(threshold):
-    clustering_pics_dir = '../../clustering_rumor_ts{}'.format(threshold)
+    clustering_pics_dir = '../../clustering_truth_ts{}'.format(threshold)
 
-    spc = joblib.load('pkl/phash_spc_17494_ts{}.pkl'.format(threshold))
+    spc = joblib.load('pkl/phash_spc_28776_ts{}.pkl'.format(threshold))
     clusters = spc.cluster_list
     n_list = [c.node_list for c in clusters]
 
@@ -59,23 +62,56 @@ def show_clustering_pics_dir(threshold):
         len(clusters), sz, sz - len(clusters)))
 
     # 执行cp命令
+    toCmd = input('是否执行cp命令(y/n)')
+    if not toCmd == 'y':
+        return
+
     valid_num = 0
     start_time = time.time()
     for index, node_list in enumerate(n_list):
         for node in node_list:
             img = image_paths[node]
-            code = os.system('cp {} {}'.format(
-                img, clustering_pics_dir + '/' + str(index) + '-' + img.split('/')[-1]))
+            code = os.system('cp {} {}'.format(img, clustering_pics_dir + '/' + str(index) + '-' + img.split('/')[-1]))
             if code == 0:
                 valid_num += 1
 
-        print('Done {}/{} clusters, it took {:.1f}s'.format(
-            index + 1, len(n_list), time.time() - start_time
-        ))
-        start_time = time.time()
+        if index % 100 == 0:
+            print('Done {}/{} clusters, it took {:.1f}s'.format(
+                index + 1, len(n_list), time.time() - start_time
+            ))
+            start_time = time.time()
 
     print('cp successfully! Valid_num = {}'.format(valid_num))
 
+
 # show_clustering_pics_dir(threshold=0.75)
 # show_clustering_pics_dir(threshold=0.8)
-# show_clustering_pics_dir(threshold=0.85)
+show_clustering_pics_dir(threshold=0.85)
+
+# ============================= mv =============================
+
+# src_dir = '../../clustering_rumor_ts0.85'
+# out_dir = '../../handled_rumor'
+
+# img_names = dict()
+# for _, _, files in os.walk(src_dir):
+#     for file in files:
+#         key = file.split('-')[0]
+#         # TODO: 含有-的
+#         img_name = file.split('-')[1]
+#
+#         if key not in img_names.keys():
+#             img_names[key] = [img_name]
+#         else:
+#             img_names[key].append(img_name)
+#
+# for key, value in img_names.items():
+#     cp_img = random.sample(value, 1)[0]
+#     code = os.system('cp {} {}'.format(os.path.join(src_dir, key + '-' + cp_img), ))
+
+# for _, _, files in os.walk(out_dir):
+#     for file in files:
+#         index = file.split('-')[0]
+#         img_name = file.replace(index + '-', '')
+#
+#         os.system('mv {} {}'.format(os.path.join(out_dir, file), os.path.join(out_dir, img_name)))

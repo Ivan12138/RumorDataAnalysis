@@ -6,6 +6,7 @@ from PIL import Image
 from sklearn.externals import joblib
 import time
 import os
+import random
 
 
 def get_phash_table(image_paths, sz):
@@ -27,7 +28,7 @@ def get_phash_table(image_paths, sz):
             print('Img {}/{} Done. It took {:.1f}s...'.format(i + 1, sz, time.time() - start_time))
             start_time = time.time()
 
-    joblib.dump(valid_image_paths, phash_list, 'pkl/phash_list_{}.pkl'.format(sz))
+    joblib.dump((valid_image_paths, phash_list), 'pkl/phash_list_{}.pkl'.format(len(phash_list)))
 
     out.close()
 
@@ -40,7 +41,7 @@ def similarity_distance(p_hash1, p_hash2):
 def get_similarity_matrix(sz):
     print('Get Started Generating Matrix...')
 
-    phash_list = joblib.load('pkl/phash_list_{}.pkl'.format(sz))
+    valid_image_paths, phash_list = joblib.load('pkl/phash_list_{}.pkl'.format(sz))
     matrix = np.zeros((sz, sz))
 
     start_time = time.time()

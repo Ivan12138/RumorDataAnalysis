@@ -57,17 +57,7 @@ def get_similarity_matrix(sz):
     joblib.dump(matrix, 'pkl/matrix_{}.pkl'.format(sz))
 
 
-# 先撤回mv
-def recover():
-    src_dir = '../../pics_filtered_img_rumor_filtered'
-    des_dir = '../../test'
-    for root, dirs, files in os.walk(src_dir):
-        for file in files:
-            img = file.split('-')[1]
-            os.system('mv {} {}'.format(os.path.join(src_dir, file), os.path.join(des_dir, img)))
-
-
-def choose_sampling_truth():
+def random_sampling_truth():
     src_dir = '../../pics_sampling_img_truth'
     out_dir = '../../truth_filtered'
 

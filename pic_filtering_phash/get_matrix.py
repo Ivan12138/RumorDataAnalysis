@@ -59,11 +59,11 @@ def get_similarity_matrix(sz):
 
 
 def random_sampling_truth():
-    src_dir = '../../pics_sampling_img_truth'
-    out_dir = '../../truth_filtered'
+    src_dir = '../../handled_truth'
+    out_dir = '../../handled_truth_del'
 
-    rumor_pics_num = 17588
-    truth_pics_num = 21749
+    rumor_pics_num = 12250
+    truth_pics_num = 22862
 
     all_files = []
     rm_files = []
@@ -73,9 +73,9 @@ def random_sampling_truth():
             if '.jpg' not in file:
                 rm_files.append(file)
                 all_files.remove(file)
-    print('After removing N-JPG files, all_files={}, rm_files={}'.format(len(all_files), len(rm_files)))
+    print('After removing Non-JPG files, all_files={}, rm_files={}'.format(len(all_files), len(rm_files)))
 
-    rm_num = truth_pics_num - rumor_pics_num - len(rm_files) - random.randint(0, 500)
+    rm_num = truth_pics_num - rumor_pics_num - len(rm_files)
     rm_files += random.sample(all_files, rm_num)
 
     print('Get Started Sampling, rm_files = {}'.format(len(rm_files)))

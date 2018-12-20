@@ -27,7 +27,3 @@ db.getCollection('judgeWeibo').find()
 ls img_rumor -lR |grep "^-"|wc -l
 
 ps -aux|grep python3.5
-
-==================================== To Do ====================================
-
-编写说明文件、总结等

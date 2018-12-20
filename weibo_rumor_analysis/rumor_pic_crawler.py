@@ -41,6 +41,9 @@ def crawler(pic_lists, pic_set, file_of_img, file_of_err_img, stored_path):
                             time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()), ok_i, err_i,
                             (ok_i + err_i) / size * 100, time.time() - start_time))
 
+                    ok_out.flush()
+                    err_out.flush()
+
 
 def crawler_once():
     with open('file/rumor_weibo.json', 'r') as src:
@@ -73,6 +76,3 @@ def crawler_twice():
     url_set = set(url_list)
     crawler(url_list, url_set, 'downloading_twice_rumor_img_log.txt', 'downloading_twice_rumor_img_err_log.txt',
             '../img_rumor')
-
-
-crawler_twice()
